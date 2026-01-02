@@ -1,0 +1,107 @@
+// TIMELINE UPDATE FOR EDIT LEAD PAGE
+// Replace lines 907-953 in frontend/app/leads/[id]/page.tsx
+
+{/* Timeline Items - Show real history or all statuses */}
+{statusHistory.length > 0 ? (
+    // Show actual status history with names
+    statusHistory.map((history, index) => {
+        const isLatest = index === 0;
+        
+        return (
+            <div key={history.id} style={{ 
+                position: 'relative',
+                paddingLeft: '50px',
+                paddingBottom: index === statusHistory.length - 1 ? '0' : '24px'
+            }}>
+                {/* Circle */}
+                <div style={{
+                    position: 'absolute',
+                    left: '10px',
+                    top: '0',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    border: `3px solid #14b8a6`,
+                    background: '#14b8a6',
+                    zIndex: 1
+                }}></div>
+
+                {/* Content */}
+                <div>
+                    <div style={{ 
+                        fontSize: '14px', 
+                        fontWeight: isLatest ? '600' : '500',
+                        color: '#0f766e',
+                        marginBottom: '2px'
+                    }}>
+                        {history.new_status_name}
+                        {isLatest && <span style={{ marginLeft: '8px', fontSize: '12px', color: '#14b8a6' }}>(Current)</span>}
+                    </div>
+                    <div style={{ 
+                        fontSize: '12px', 
+                        color: '#9ca3af'
+                    }}>
+                        {new Date(history.changed_at).toLocaleString()}
+                    </div>
+                    {history.old_status_name && (
+                        <div style={{ 
+                            fontSize: '11px', 
+                            color: '#9ca3af',
+                            marginTop: '2px'
+                        }}>
+                            from {history.old_status_name}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    })
+) : (
+    // Fallback: Show all statuses with current one highlighted (using integer ID comparison)
+    statuses.map((status, index) => {
+        const isActive = status.id === formData.status;
+        const currentStatusIndex = statuses.findIndex(s => s.id === formData.status);
+        const isPast = currentStatusIndex > -1 && currentStatusIndex > index;
+        
+        return (
+            <div key={status.id} style={{ 
+                position: 'relative',
+                paddingLeft: '50px',
+                paddingBottom: index === statuses.length - 1 ? '0' : '24px'
+            }}>
+                {/* Circle */}
+                <div style={{
+                    position: 'absolute',
+                    left: '10px',
+                    top: '0',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    border: `3px solid ${isActive ? '#14b8a6' : isPast ? '#14b8a6' : '#e5e7eb'}`,
+                    background: isActive ? '#14b8a6' : isPast ? '#14b8a6' : 'white',
+                    zIndex: 1
+                }}></div>
+
+                {/* Content */}
+                <div>
+                    <div style={{ 
+                        fontSize: '14px', 
+                        fontWeight: isActive ? '600' : '500',
+                        color: isActive ? '#0f766e' : isPast ? '#0f766e' : '#6b7280',
+                        marginBottom: '2px'
+                    }}>
+                        {status.status_name}
+                    </div>
+                    {status.description && (
+                        <div style={{ 
+                            fontSize: '12px', 
+                            color: '#9ca3af'
+                        }}>
+                            {status.description}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    })
+)}
