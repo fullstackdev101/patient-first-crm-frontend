@@ -40,17 +40,6 @@ export default function Topbar() {
         return user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     };
 
-    const getRoleName = () => {
-        const roles: { [key: number]: string } = {
-            1: 'Admin',
-            2: 'Manager',
-            3: 'Agent',
-            4: 'QA',
-            5: 'Reviewer'
-        };
-        return roles[user?.role_id || 3] || 'User';
-    };
-
     return (
         <header className="topbar">
             <div className="topbar-left">
@@ -75,7 +64,7 @@ export default function Topbar() {
                         <div className="user-avatar">{getUserInitials()}</div>
                         <div className="user-info">
                             <div className="user-name">{user?.name || 'User'}</div>
-                            <div className="user-role">{getRoleName()}</div>
+                            <div className="user-role">{user?.role || 'User'}</div>
                         </div>
                     </div>
 
@@ -93,6 +82,36 @@ export default function Topbar() {
                             zIndex: 1000,
                         }}>
                             <button
+                                onClick={() => {
+                                    setShowUserMenu(false);
+                                    router.push('/settings');
+                                }}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    textAlign: 'left',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    color: 'var(--text-primary)',
+                                    fontSize: '14px',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--gray-100)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                                    </path>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                Settings
+                            </button>
+                            <button
                                 onClick={handleLogout}
                                 style={{
                                     width: '100%',
@@ -100,6 +119,7 @@ export default function Topbar() {
                                     textAlign: 'left',
                                     background: 'transparent',
                                     border: 'none',
+                                    borderTop: '1px solid var(--border-color)',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',

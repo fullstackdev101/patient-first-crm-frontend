@@ -16,6 +16,7 @@ interface Lead {
     status: number;
     assigned_agent?: string;
     assigned_to?: number;
+    assigned_user_name?: string; // Username of assigned user
     created_at: string;
     height?: string;
     weight?: string;

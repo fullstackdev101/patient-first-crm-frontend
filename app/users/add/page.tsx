@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useUsersStore } from '@/store';
+import axios from '@/lib/axios';
 
 export default function AddUserPage() {
     const router = useRouter();
     const { createUser, isLoading, error, clearError } = useUsersStore();
 
+    const [roles, setRoles] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         username: '',
@@ -20,6 +22,21 @@ export default function AddUserPage() {
         status: 'Active',
         role_id: 3, // Default to Agent
     });
+
+    // Fetch roles on mount
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await axios.get('/roles');
+                if (response.data.success) {
+                    setRoles(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+            }
+        };
+        fetchRoles();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -136,11 +153,11 @@ export default function AddUserPage() {
                                                     value={formData.role_id}
                                                     onChange={(e) => setFormData({ ...formData, role_id: parseInt(e.target.value) })}
                                                 >
-                                                    <option value={1}>Admin</option>
-                                                    <option value={2}>Manager</option>
-                                                    <option value={3}>Agent</option>
-                                                    <option value={4}>QA</option>
-                                                    <option value={5}>Reviewer</option>
+                                                    {roles.map((role) => (
+                                                        <option key={role.id} value={role.id}>
+                                                            {role.role}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
 

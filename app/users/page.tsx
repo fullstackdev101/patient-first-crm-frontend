@@ -1,31 +1,130 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ProtectedRoute from '../components/ProtectedRoute';
-import { useUsersStore } from '@/store';
+import axios from '@/lib/axios';
+import { useAuthStore } from '@/store';
 
 export default function UsersPage() {
-    const { users, isLoading, error, fetchUsers, deleteUser } = useUsersStore();
-    const [deletingId, setDeletingId] = useState<number | null>(null);
+    const router = useRouter();
+    const [users, setUsers] = useState<any[]>([]);
+    const [roles, setRoles] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+    // deletingId state removed - user deletion disabled
+    const { user: currentUser } = useAuthStore();
 
+    // Access control: Redirect Agent and License Agent users
+    useEffect(() => {
+        const userRole = currentUser?.role?.trim();
+        if (userRole === 'Agent' || userRole === 'License Agent') {
+            router.replace('/dashboard');
+        }
+    }, [currentUser, router]);
+
+    // Search and filter states
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedRole, setSelectedRole] = useState('');
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [limit] = useState(5);
+
+    // Fetch users with search and pagination
+    const fetchUsers = async () => {
+        try {
+            setIsLoading(true);
+            const params = new URLSearchParams({
+                page: currentPage.toString(),
+                limit: limit.toString(),
+            });
+
+            if (searchTerm) {
+                params.append('search', searchTerm);
+            }
+
+            if (selectedRole) {
+                params.append('role_id', selectedRole);
+            }
+
+            const response = await axios.get(`/users?${params.toString()}`);
+            if (response.data.success) {
+                let fetchedUsers = response.data.data;
+
+                // Filter out superadmin users if current user is not superadmin
+                const currentUserRole = currentUser?.role?.trim().toLowerCase();
+                if (currentUserRole !== 'superadmin') {
+                    fetchedUsers = fetchedUsers.filter((user: any) => {
+                        const userRole = user.role?.trim().toLowerCase();
+                        return userRole !== 'superadmin';
+                    });
+                }
+
+                setUsers(fetchedUsers);
+                setTotalPages(response.data.pagination.totalPages);
+                setTotal(response.data.pagination.total);
+            }
+        } catch (err) {
+            console.error('Error fetching users:', err);
+            setError('Failed to fetch users');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Fetch roles for filter dropdown
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await axios.get('/roles');
+                if (response.data.success) {
+                    let fetchedRoles = response.data.data;
+
+                    // Filter out superadmin role if current user is not superadmin
+                    const currentUserRole = currentUser?.role?.trim().toLowerCase();
+                    if (currentUserRole !== 'superadmin') {
+                        fetchedRoles = fetchedRoles.filter((role: any) => {
+                            return role.role?.trim().toLowerCase() !== 'superadmin';
+                        });
+                    }
+
+                    setRoles(fetchedRoles);
+                }
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+            }
+        };
+        fetchRoles();
+    }, [currentUser]);
+
+    // Fetch users when page, search, or filter changes
     useEffect(() => {
         fetchUsers();
-    }, [fetchUsers]);
+    }, [currentPage, searchTerm, selectedRole]);
 
-    const handleDelete = async (id: number, name: string) => {
-        if (confirm(`Are you sure you want to delete ${name}?`)) {
-            setDeletingId(id);
-            try {
-                await deleteUser(id);
-            } catch (err) {
-                alert('Failed to delete user. Please try again.');
-            } finally {
-                setDeletingId(null);
-            }
-        }
+    // handleDelete function removed - user deletion disabled
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        setCurrentPage(1); // Reset to first page on new search
+        fetchUsers();
+    };
+
+    const handleRoleFilter = (roleId: string) => {
+        setSelectedRole(roleId);
+        setCurrentPage(1); // Reset to first page on filter change
+    };
+
+    const handleClearFilters = () => {
+        setSearchTerm('');
+        setSelectedRole('');
+        setCurrentPage(1);
     };
 
     const getStatusBadgeClass = (status: string) => {
@@ -38,14 +137,8 @@ export default function UsersPage() {
     };
 
     const getRoleName = (roleId: number) => {
-        const roles: { [key: number]: string } = {
-            1: 'Admin',
-            2: 'Manager',
-            3: 'Agent',
-            4: 'QA',
-            5: 'Reviewer'
-        };
-        return roles[roleId] || 'Unknown';
+        const role = roles.find(r => r.id === roleId);
+        return role ? role.role : 'Unknown';
     };
 
     return (
@@ -57,7 +150,7 @@ export default function UsersPage() {
                     <Topbar />
 
                     <main className="content">
-                        <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                             <div>
                                 <h2 className="page-title">Users Management</h2>
                                 <p className="page-subtitle">Manage system users and their roles</p>
@@ -69,6 +162,92 @@ export default function UsersPage() {
                                 </svg>
                                 Add New User
                             </Link>
+                        </div>
+
+                        {/* Search and Filter Section */}
+                        <div className="card" style={{ marginBottom: '24px', padding: '20px' }}>
+                            <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                {/* Search Input */}
+                                <div style={{ flex: '1', minWidth: '250px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--gray-700)' }}>
+                                        Search
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by name, email, or username..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            border: '1px solid var(--gray-300)',
+                                            borderRadius: '8px',
+                                            fontSize: '14px'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Role Filter */}
+                                <div style={{ minWidth: '200px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--gray-700)' }}>
+                                        Filter by Role
+                                    </label>
+                                    <select
+                                        value={selectedRole}
+                                        onChange={(e) => handleRoleFilter(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            border: '1px solid var(--gray-300)',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            background: 'white'
+                                        }}
+                                    >
+                                        <option value="">All Roles</option>
+                                        {roles.map(role => (
+                                            <option key={role.id} value={role.id}>{role.role}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            padding: '10px 20px',
+                                            background: 'var(--primary-500)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Search
+                                    </button>
+                                    {(searchTerm || selectedRole) && (
+                                        <button
+                                            type="button"
+                                            onClick={handleClearFilters}
+                                            style={{
+                                                padding: '10px 20px',
+                                                background: 'var(--gray-200)',
+                                                color: 'var(--gray-700)',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                fontSize: '14px',
+                                                fontWeight: '600',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                            </form>
                         </div>
 
                         {/* Error Message */}
@@ -94,131 +273,195 @@ export default function UsersPage() {
                                         <div style={{ marginBottom: '12px' }}>Loading users...</div>
                                     </div>
                                 ) : (
-                                    <table className="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Email</th>
-                                                <th>Role</th>
-                                                <th>Assigned IP</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {users.length === 0 ? (
+                                    <>
+                                        <table className="data-table">
+                                            <thead>
                                                 <tr>
-                                                    <td colSpan={6} style={{ textAlign: 'center', padding: '48px', color: 'var(--gray-600)' }}>
-                                                        No users found
-                                                    </td>
+                                                    <th>Name</th>
+                                                    <th>Username</th>
+                                                    <th>Email</th>
+                                                    <th>Role</th>
+                                                    <th>Assigned IP</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
                                                 </tr>
-                                            ) : (
-                                                users.map((user) => (
-                                                    <tr key={user.id}>
-                                                        <td>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                                <div className="user-avatar">{getUserInitials(user.name)}</div>
-                                                                <div className="text-bold">{user.name}</div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="text-muted">{user.email}</td>
-                                                        <td>
-                                                            <span style={{
-                                                                padding: '4px 12px',
-                                                                background: '#f3f4f6',
-                                                                borderRadius: '6px',
-                                                                fontSize: '13px',
-                                                                fontWeight: '500',
-                                                                color: '#374151'
-                                                            }}>
-                                                                {getRoleName(user.role_id || 1)}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            {user.assigned_ip ? (
-                                                                <span style={{
-                                                                    fontFamily: 'monospace',
-                                                                    fontSize: '13px',
-                                                                    fontWeight: '600',
-                                                                    color: '#0891b2',
-                                                                    padding: '4px 8px',
-                                                                    background: '#ecfeff',
-                                                                    borderRadius: '4px',
-                                                                    border: '1px solid #a5f3fc'
-                                                                }}>
-                                                                    {user.assigned_ip}
-                                                                </span>
-                                                            ) : (
-                                                                <span style={{
-                                                                    fontSize: '13px',
-                                                                    color: '#9ca3af',
-                                                                    fontStyle: 'italic'
-                                                                }}>
-                                                                    Not assigned
-                                                                </span>
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            <span className={`badge ${getStatusBadgeClass(user.status)}`}>
-                                                                {user.status?.trim()}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                                <Link
-                                                                    href={`/users/assign-ip/${user.id}`}
-                                                                    className="btn-icon"
-                                                                    title="Assign IP"
-                                                                    style={{
-                                                                        padding: '8px',
-                                                                        border: '1px solid #d1d5db',
-                                                                        borderRadius: '6px',
-                                                                        background: 'white',
-                                                                        cursor: 'pointer',
-                                                                        color: '#0891b2',
-                                                                        display: 'inline-flex',
-                                                                        alignItems: 'center',
-                                                                        justifyContent: 'center'
-                                                                    }}
-                                                                >
-                                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                                                                        </path>
-                                                                    </svg>
-                                                                </Link>
-                                                                <Link
-                                                                    href={`/users/edit/${user.id}`}
-                                                                    className="btn-icon"
-                                                                    title="Edit"
-                                                                >
-                                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                                                        </path>
-                                                                    </svg>
-                                                                </Link>
-                                                                <button
-                                                                    onClick={() => handleDelete(user.id, user.name)}
-                                                                    className="btn-icon"
-                                                                    title="Delete"
-                                                                    disabled={deletingId === user.id}
-                                                                    style={{ opacity: deletingId === user.id ? 0.5 : 1 }}
-                                                                >
-                                                                    <svg width="16" height="16" fill="none" stroke="currentColor"
-                                                                        viewBox="0 0 24 24" style={{ color: 'var(--rose-500)' }}>
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                                        </path>
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
+                                            </thead>
+                                            <tbody>
+                                                {users.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: 'var(--gray-600)' }}>
+                                                            No users found
                                                         </td>
                                                     </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
+                                                ) : (
+                                                    users.map((user) => (
+                                                        <tr key={user.id}>
+                                                            <td>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                                    <div className="user-avatar">{getUserInitials(user.name)}</div>
+                                                                    <div className="text-bold">{user.name}</div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="text-muted">{user.username}</td>
+                                                            <td className="text-muted">{user.email}</td>
+                                                            <td>
+                                                                <span style={{
+                                                                    padding: '4px 12px',
+                                                                    background: '#f3f4f6',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '13px',
+                                                                    fontWeight: '500',
+                                                                    color: '#374151'
+                                                                }}>
+                                                                    {user.role || getRoleName(user.role_id)}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                {user.assigned_ip ? (
+                                                                    <span style={{
+                                                                        fontFamily: 'monospace',
+                                                                        fontSize: '13px',
+                                                                        fontWeight: '600',
+                                                                        color: '#0891b2',
+                                                                        padding: '4px 8px',
+                                                                        background: '#ecfeff',
+                                                                        borderRadius: '4px',
+                                                                        border: '1px solid #a5f3fc'
+                                                                    }}>
+                                                                        {user.assigned_ip}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span style={{
+                                                                        fontSize: '13px',
+                                                                        color: '#9ca3af',
+                                                                        fontStyle: 'italic'
+                                                                    }}>
+                                                                        Not assigned
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                <span className={`badge ${getStatusBadgeClass(user.status)}`}>
+                                                                    {user.status?.trim()}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                                    <Link
+                                                                        href={`/users/assign-ip/${user.id}`}
+                                                                        className="btn-icon"
+                                                                        title="Assign IP"
+                                                                        style={{
+                                                                            padding: '8px',
+                                                                            border: '1px solid #d1d5db',
+                                                                            borderRadius: '6px',
+                                                                            background: 'white',
+                                                                            cursor: 'pointer',
+                                                                            color: '#0891b2',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center'
+                                                                        }}
+                                                                    >
+                                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                                                            </path>
+                                                                        </svg>
+                                                                    </Link>
+                                                                    <Link
+                                                                        href={`/users/edit/${user.id}`}
+                                                                        className="btn-icon"
+                                                                        title="Edit"
+                                                                    >
+                                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                                            </path>
+                                                                        </svg>
+                                                                    </Link>
+                                                                    {/* Delete button removed - user deletion disabled */}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                )}
+                                            </tbody>
+                                        </table>
+
+                                        {/* Pagination */}
+                                        {totalPages > 1 && (
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                padding: '20px',
+                                                borderTop: '1px solid var(--gray-200)'
+                                            }}>
+                                                <div style={{ fontSize: '14px', color: 'var(--gray-600)' }}>
+                                                    Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, total)} of {total} users
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                    {/* Previous Button */}
+                                                    <button
+                                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                                        disabled={currentPage === 1}
+                                                        style={{
+                                                            padding: '8px 12px',
+                                                            border: '1px solid var(--gray-300)',
+                                                            borderRadius: '6px',
+                                                            background: currentPage === 1 ? 'var(--gray-100)' : 'white',
+                                                            color: currentPage === 1 ? 'var(--gray-400)' : 'var(--gray-700)',
+                                                            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                                            fontSize: '14px',
+                                                            fontWeight: '500'
+                                                        }}
+                                                    >
+                                                        Previous
+                                                    </button>
+
+                                                    {/* Page Numbers */}
+                                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                                        <button
+                                                            key={page}
+                                                            onClick={() => setCurrentPage(page)}
+                                                            style={{
+                                                                padding: '8px 12px',
+                                                                border: '1px solid var(--gray-300)',
+                                                                borderRadius: '6px',
+                                                                background: currentPage === page ? 'var(--primary-500)' : 'white',
+                                                                color: currentPage === page ? 'white' : 'var(--gray-700)',
+                                                                cursor: 'pointer',
+                                                                fontSize: '14px',
+                                                                fontWeight: currentPage === page ? '600' : '500',
+                                                                minWidth: '40px',
+                                                            }}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    ))}
+
+                                                    {/* Next Button */}
+                                                    <button
+                                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                                        disabled={currentPage === totalPages}
+                                                        style={{
+                                                            padding: '8px 12px',
+                                                            border: '1px solid var(--gray-300)',
+                                                            borderRadius: '6px',
+                                                            background: currentPage === totalPages ? 'var(--gray-100)' : 'white',
+                                                            color: currentPage === totalPages ? 'var(--gray-400)' : 'var(--gray-700)',
+                                                            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                                            fontSize: '14px',
+                                                            fontWeight: '500'
+                                                        }}
+                                                    >
+                                                        Next
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>

@@ -1,14 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Production deployment configuration
-  basePath: "/pfc",
-  assetPrefix: "/pfc",
+  // basePath: "/pfc",
+  // assetPrefix: "/pfc",
   output: "standalone",
-  // Prevent 301 redirects for trailing slash normalization
+  // Ensure trailing slashes are removed for consistent routing
   trailingSlash: false,
-  // Disable automatic redirects that can cause loops
-  skipTrailingSlashRedirect: true,
 };
 
 module.exports = nextConfig;
-

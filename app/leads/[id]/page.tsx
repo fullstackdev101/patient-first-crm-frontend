@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '../../components/Sidebar';
@@ -70,6 +70,11 @@ export default function EditLeadPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [newComment, setNewComment] = useState('');
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [originalFormData, setOriginalFormData] = useState<any>(null);
+    const [hasChanges, setHasChanges] = useState(false);
+    const saveButtonRef = useRef<HTMLButtonElement>(null);
 
     // Fetch lead data on mount
     useEffect(() => {
@@ -125,9 +130,64 @@ export default function EditLeadPage() {
                 status: currentLead.status || 1, // Status is now integer ID
                 assigned_to: currentLead.assigned_to ? currentLead.assigned_to.toString() : '', // Use assigned_to for form
             });
+
+            // Store original form data for comparison
+            setOriginalFormData({
+                first_name: currentLead.first_name || '',
+                last_name: currentLead.last_name || '',
+                middle_initial: currentLead.middle_initial || '',
+                date_of_birth: currentLead.date_of_birth || '',
+                phone: currentLead.phone ? maskPhone(currentLead.phone) : '',
+                email: currentLead.email || '',
+                address: currentLead.address || '',
+                state_of_birth: currentLead.state_of_birth || '',
+                ssn: currentLead.ssn ? maskSSN(currentLead.ssn) : '',
+                height: currentLead.height || '',
+                weight: currentLead.weight || '',
+                insurance_provider: currentLead.insurance_provider || '',
+                policy_number: currentLead.policy_number || '',
+                medical_notes: currentLead.medical_notes || '',
+                doctor_name: currentLead.doctor_name || '',
+                doctor_phone: currentLead.doctor_phone ? maskPhone(currentLead.doctor_phone) : '',
+                doctor_address: currentLead.doctor_address || '',
+                beneficiary_details: currentLead.beneficiary_details || '',
+                plan_details: currentLead.plan_details || '',
+                bank_name: currentLead.bank_name || '',
+                account_name: currentLead.account_name || '',
+                account_number: currentLead.account_number ? maskAccountNumber(currentLead.account_number) : '',
+                routing_number: currentLead.routing_number ? maskRoutingNumber(currentLead.routing_number) : '',
+                account_type: (currentLead.account_type as 'checking' | 'saving' | 'direct_express') || 'checking',
+                banking_comments: currentLead.banking_comments || '',
+                hospitalized_nursing_oxygen_cancer_assistance: currentLead.hospitalized_nursing_oxygen_cancer_assistance ? 'yes' : 'no',
+                organ_transplant_terminal_condition: currentLead.organ_transplant_terminal_condition ? 'yes' : 'no',
+                aids_hiv_immune_deficiency: currentLead.aids_hiv_immune_deficiency ? 'yes' : 'no',
+                diabetes_complications_insulin: currentLead.diabetes_complications_insulin ? 'yes' : 'no',
+                kidney_disease_multiple_cancers: currentLead.kidney_disease_multiple_cancers ? 'yes' : 'no',
+                pending_tests_surgery_hospitalization: currentLead.pending_tests_surgery_hospitalization ? 'yes' : 'no',
+                angina_stroke_lupus_copd_hepatitis: currentLead.angina_stroke_lupus_copd_hepatitis ? 'yes' : 'no',
+                heart_attack_aneurysm_surgery: currentLead.heart_attack_aneurysm_surgery ? 'yes' : 'no',
+                cancer_treatment_2years: currentLead.cancer_treatment_2years ? 'yes' : 'no',
+                substance_abuse_treatment: currentLead.substance_abuse_treatment ? 'yes' : 'no',
+                cardiovascular_events_3years: currentLead.cardiovascular_events_3years ? 'yes' : 'no',
+                cancer_respiratory_liver_3years: currentLead.cancer_respiratory_liver_3years ? 'yes' : 'no',
+                neurological_conditions_3years: currentLead.neurological_conditions_3years ? 'yes' : 'no',
+                health_comments: currentLead.health_comments || '',
+                covid_question: currentLead.covid_question ? 'yes' : 'no',
+                status: currentLead.status || 1,
+                assigned_to: currentLead.assigned_to ? currentLead.assigned_to.toString() : '',
+            });
+
             console.log('Form populated successfully');
         }
     }, [currentLead]);
+
+    // Detect changes in form data
+    useEffect(() => {
+        if (originalFormData) {
+            const changed = JSON.stringify(formData) !== JSON.stringify(originalFormData);
+            setHasChanges(changed);
+        }
+    }, [formData, originalFormData]);
 
     // Fetch statuses on mount
     useEffect(() => {
@@ -178,11 +238,11 @@ export default function EditLeadPage() {
         }
     }, [leadId]);
 
-    // Fetch users for agent dropdown
+    // Fetch users for assigned agent dropdown (exclude Agent role)
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get('/users');
+                const response = await axios.get('/users?exclude_role=Agent');
                 if (response.data.success) {
                     setUsers(response.data.data);
                 }
@@ -213,6 +273,8 @@ export default function EditLeadPage() {
             alert('Please fill in all required fields');
             return;
         }
+
+        setIsSaving(true); // Show full-page loader
 
         try {
             // Get user from localStorage
@@ -268,7 +330,6 @@ export default function EditLeadPage() {
             const response = await axios.put(`/leads/${leadId}`, leadData);
 
             console.log('✅ Lead updated successfully!');
-            alert('Lead updated successfully!');
 
             // Refresh lead data from database
             await fetchLeadById(leadId);
@@ -292,8 +353,26 @@ export default function EditLeadPage() {
             } catch (error) {
                 console.error('Error refreshing comments:', error);
             }
+
+            setIsSaving(false); // Hide loader
+            setShowSuccessModal(true); // Show success modal
+
+            // Reset originalFormData to match current (saved) state
+            setOriginalFormData({ ...formData });
+            setHasChanges(false);
+
+            // Scroll to Save Changes button
+            setTimeout(() => {
+                saveButtonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+
+            // Auto-hide success modal after 2 seconds
+            setTimeout(() => {
+                setShowSuccessModal(false);
+            }, 2000);
         } catch (err: any) {
             console.error('Error updating lead:', err);
+            setIsSaving(false); // Hide loader on error
             alert('Failed to update lead. Please try again.');
         }
     };
@@ -306,16 +385,18 @@ export default function EditLeadPage() {
 
         setIsSubmittingComment(true);
         try {
-            // Get user ID from localStorage
-            const userStr = localStorage.getItem('user');
-            const user = userStr ? JSON.parse(userStr) : null;
+            // Get user ID from auth-storage (Zustand persist)
+            const authStorageStr = localStorage.getItem('auth-storage');
+            let userId = 1; // Default fallback
 
-            // Try different possible user object structures
-            let userId = user?.id || user?.user_id || user?.userId;
-
-            if (!userId) {
-                console.warn('No user found in localStorage, using default user ID 1');
-                userId = 1; // Default to user ID 1 for testing
+            if (authStorageStr) {
+                try {
+                    const authStorage = JSON.parse(authStorageStr);
+                    userId = authStorage.state?.user?.id || 1;
+                    console.log('✅ Got user ID from auth-storage:', userId);
+                } catch (error) {
+                    console.error('Error parsing auth-storage:', error);
+                }
             }
 
             const response = await axios.post(`/leads/${leadId}/comments`, {
@@ -384,6 +465,99 @@ export default function EditLeadPage() {
 
     return (
         <ProtectedRoute>
+            {/* Full-Page Loading Overlay */}
+            {isSaving && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 9999
+                }}>
+                    <div style={{
+                        background: 'white',
+                        padding: '40px',
+                        borderRadius: '12px',
+                        textAlign: 'center',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+                    }}>
+                        <div style={{
+                            width: '60px',
+                            height: '60px',
+                            border: '4px solid var(--gray-200)',
+                            borderTop: '4px solid var(--primary-500)',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite',
+                            margin: '0 auto 20px'
+                        }}></div>
+                        <div style={{ fontSize: '18px', fontWeight: '600', color: 'var(--gray-800)' }}>
+                            Saving Changes...
+                        </div>
+                        <div style={{ fontSize: '14px', color: 'var(--gray-500)', marginTop: '8px' }}>
+                            Please wait
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 9999
+                }}>
+                    <div style={{
+                        background: 'white',
+                        padding: '40px',
+                        borderRadius: '12px',
+                        textAlign: 'center',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                        minWidth: '300px'
+                    }}>
+                        <div style={{
+                            width: '60px',
+                            height: '60px',
+                            background: 'var(--success-500)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 20px'
+                        }}>
+                            <svg width="32" height="32" fill="none" stroke="white" viewBox="0 0 24 24" strokeWidth="3">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <div style={{ fontSize: '20px', fontWeight: '600', color: 'var(--gray-800)' }}>
+                            Information Saved!
+                        </div>
+                        <div style={{ fontSize: '14px', color: 'var(--gray-500)', marginTop: '8px' }}>
+                            Lead updated successfully
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
+
             <div className="dashboard-container">
                 <Sidebar />
 
@@ -919,7 +1093,18 @@ export default function EditLeadPage() {
                                     {/* Form Actions */}
                                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                                         <Link href="/leads" className="btn-secondary">Cancel</Link>
-                                        <button type="submit" className="btn-primary">Save Changes</button>
+                                        <button
+                                            ref={saveButtonRef}
+                                            type="submit"
+                                            className="btn-primary"
+                                            disabled={!hasChanges}
+                                            style={{
+                                                opacity: hasChanges ? 1 : 0.5,
+                                                cursor: hasChanges ? 'pointer' : 'not-allowed'
+                                            }}
+                                        >
+                                            Save Changes
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -965,8 +1150,8 @@ export default function EditLeadPage() {
                                                             width: '20px',
                                                             height: '20px',
                                                             borderRadius: '50%',
-                                                            border: `3px solid ${isActive ? '#14b8a6' : isPast ? '#14b8a6' : '#e5e7eb'}`,
-                                                            background: isActive ? '#14b8a6' : isPast ? '#14b8a6' : 'white',
+                                                            border: `3px solid ${isActive ? '#10b981' : '#e5e7eb'}`,
+                                                            background: isActive ? '#10b981' : 'white',
                                                             zIndex: 1
                                                         }}></div>
 
@@ -1044,7 +1229,7 @@ export default function EditLeadPage() {
                                             <div style={{ marginBottom: '12px' }}>
                                                 <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>Assigned to</label>
                                                 <div style={{ fontSize: '14px', color: '#111827', fontWeight: '500' }}>
-                                                    {currentLead.assigned_to || 'Unassigned'}
+                                                    {currentLead.assigned_user_name || 'Unassigned'}
                                                 </div>
                                             </div>
                                             <div>

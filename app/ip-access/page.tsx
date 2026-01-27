@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from '@/lib/axios';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ProtectedRoute from '../components/ProtectedRoute';
+import { useAuthStore } from '@/store';
 
 interface IPAccess {
     id: number;
@@ -17,10 +19,20 @@ interface IPAccess {
 }
 
 export default function IPAccessPage() {
+    const router = useRouter();
+    const { user: currentUser } = useAuthStore();
     const [ipRecords, setIPRecords] = useState<IPAccess[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingRecord, setEditingRecord] = useState<IPAccess | null>(null);
+
+    // Access control: Redirect Agent and License Agent users
+    useEffect(() => {
+        const userRole = currentUser?.role?.trim();
+        if (userRole === 'Agent' || userRole === 'License Agent') {
+            router.replace('/dashboard');
+        }
+    }, [currentUser, router]);
 
     const [formData, setFormData] = useState({
         ip_address: '',

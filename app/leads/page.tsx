@@ -1,34 +1,61 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import ProtectedRoute from '../components/ProtectedRoute';
+import NewLeadNotification from '../components/NewLeadNotification';
 import { useLeadsStore } from '@/store';
+import { useAuthStore } from '@/store';
 import axios from '@/lib/axios';
 
 // Removed hardcoded LeadStatus type - now fetching from API
 
 export default function LeadsPage() {
+    const router = useRouter();
+    const { user: currentUser } = useAuthStore();
     const {
         leads,
         isLoading,
         error,
-        fetchLeads,
-        setSearchQuery,
-        setStatusFilter,
-        setCurrentPage,
-        searchQuery,
-        statusFilter,
-        currentPage,
         totalLeads
     } = useLeadsStore();
 
+    // Access control: Redirect only Agent users to /leads-agent
+    useEffect(() => {
+        const userRole = currentUser?.role?.trim();
+        if (userRole === 'Agent') {
+            router.replace('/leads-agent');
+        }
+    }, [currentUser, router]);
+
+    // Local state for filters
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
+
     // State for statuses from database
     const [statuses, setStatuses] = useState<any[]>([]);
+    const [licenseAgentStatusId, setLicenseAgentStatusId] = useState<string | null>(null);
+
+    // State for assigned users filter
+    const [assignedUsers, setAssignedUsers] = useState<any[]>([]);
+    const [assignedUserFilter, setAssignedUserFilter] = useState('');
+
+    // State for date filters
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
+    // Local pagination state
+    const [currentPage, setCurrentPage] = useState(1);
 
     const itemsPerPage = 5;
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, statusFilter, assignedUserFilter, startDate, endDate]);
 
     // Fetch statuses from API
     useEffect(() => {
@@ -37,6 +64,13 @@ export default function LeadsPage() {
                 const response = await axios.get('/statuses');
                 if (response.data.success) {
                     setStatuses(response.data.data);
+                    // Find License Agent status ID
+                    const licenseAgentStatus = response.data.data.find(
+                        (status: any) => status.status_name === 'License Agent'
+                    );
+                    if (licenseAgentStatus) {
+                        setLicenseAgentStatusId(licenseAgentStatus.id.toString());
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching statuses:', error);
@@ -45,15 +79,84 @@ export default function LeadsPage() {
         fetchStatuses();
     }, []);
 
-    // Fetch leads on component mount
+    // Fetch assigned users from API
     useEffect(() => {
-        fetchLeads();
-    }, [fetchLeads]);
+        const fetchAssignedUsers = async () => {
+            try {
+                const response = await axios.get('/users');
+                if (response.data.success) {
+                    setAssignedUsers(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+        fetchAssignedUsers();
+    }, []);
+
+    // Auto-select License Agent status for License Agent users
+    useEffect(() => {
+        const userRole = currentUser?.role?.trim();
+        if (userRole === 'License Agent' && licenseAgentStatusId) {
+            setStatusFilter(licenseAgentStatusId);
+        }
+    }, [currentUser, licenseAgentStatusId]);
 
     // Refetch when filters change
     useEffect(() => {
-        fetchLeads();
-    }, [searchQuery, statusFilter, currentPage, fetchLeads]);
+        const fetchWithFilters = async () => {
+            useLeadsStore.setState({ isLoading: true, error: null });
+
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: itemsPerPage.toString()
+                });
+
+                console.log('📄 Fetching page:', currentPage);
+
+                if (searchQuery) params.append('search', searchQuery);
+                if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
+                if (assignedUserFilter && assignedUserFilter !== 'All') params.append('assigned_to', assignedUserFilter);
+                if (startDate) {
+                    params.append('start_date', startDate);
+                    console.log('📅 Frontend sending start_date:', startDate);
+                }
+                if (endDate) {
+                    params.append('end_date', endDate);
+                    console.log('📅 Frontend sending end_date:', endDate);
+                }
+
+                console.log('🔍 Current filter values:', {
+                    searchQuery,
+                    statusFilter,
+                    assignedUserFilter,
+                    startDate,
+                    endDate,
+                    currentPage
+                });
+
+                console.log('🔍 API Request URL:', `/leads?${params.toString()}`);
+
+                const response = await axios.get(`/leads?${params}`);
+
+                if (response.data.success) {
+                    useLeadsStore.setState({
+                        leads: response.data.data.leads,
+                        totalLeads: response.data.data.total,
+                        isLoading: false
+                    });
+                }
+            } catch (error: any) {
+                useLeadsStore.setState({
+                    error: error.response?.data?.message || 'Failed to fetch leads',
+                    isLoading: false
+                });
+            }
+        };
+
+        fetchWithFilters();
+    }, [searchQuery, statusFilter, assignedUserFilter, startDate, endDate, currentPage]);
 
     // Calculate pagination
     const totalPages = Math.ceil(totalLeads / itemsPerPage);
@@ -98,6 +201,7 @@ export default function LeadsPage() {
 
     return (
         <ProtectedRoute>
+            <NewLeadNotification />
             <div className="dashboard-container">
                 <Sidebar />
 
@@ -122,7 +226,8 @@ export default function LeadsPage() {
                         {/* Filter Card */}
                         <div className="card" style={{ marginBottom: '24px' }}>
                             <div className="card-content" style={{ padding: '16px 24px' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                {/* First Row: Search, Status, Assigned User */}
+                                <div style={{ display: 'grid', gridTemplateColumns: currentUser?.role?.trim() === 'License Agent' ? '1fr 1fr' : '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                                     <div className="search-box">
                                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                             style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)' }}>
@@ -131,24 +236,146 @@ export default function LeadsPage() {
                                         </svg>
                                         <input
                                             type="text"
-                                            placeholder="Search by name, email, or ID..."
+                                            placeholder="Search by name, email, phone, or ID..."
                                             style={{ width: '100%', padding: '10px 12px 10px 40px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px' }}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
                                     </div>
                                     <select
-                                        style={{ padding: '10px 12px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                                        style={{
+                                            padding: '10px 12px',
+                                            border: '1px solid var(--gray-300)',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            background: currentUser?.role?.trim() === 'License Agent' ? 'var(--gray-100)' : 'white',
+                                            cursor: currentUser?.role?.trim() === 'License Agent' ? 'not-allowed' : 'pointer',
+                                            opacity: currentUser?.role?.trim() === 'License Agent' ? 0.7 : 1
+                                        }}
                                         value={statusFilter || 'All'}
                                         onChange={(e) => setStatusFilter(e.target.value)}
+                                        disabled={currentUser?.role?.trim() === 'License Agent'}
                                     >
                                         <option value="All">All Statuses</option>
                                         {statuses.map((status) => (
-                                            <option key={status.id} value={status.status_name}>
+                                            <option key={status.id} value={status.id}>
                                                 {status.status_name}
                                             </option>
                                         ))}
                                     </select>
+                                    {currentUser?.role?.trim() !== 'License Agent' && (
+                                        <select
+                                            style={{ padding: '10px 12px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                                            value={assignedUserFilter || 'All'}
+                                            onChange={(e) => setAssignedUserFilter(e.target.value)}
+                                        >
+                                            <option value="All">All Assigned Users</option>
+                                            {assignedUsers.map((user) => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.name} ({user.role})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                                {/* Second Row: Date Filters */}
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    alignItems: 'flex-end',
+                                    padding: '12px 16px',
+                                    background: 'var(--gray-50)',
+                                    borderRadius: '8px',
+                                    border: '1px solid var(--gray-200)'
+                                }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const today = new Date().toISOString().split('T')[0];
+                                            setStartDate(today);
+                                            setEndDate(today);
+                                        }}
+                                        style={{
+                                            padding: '10px 16px',
+                                            border: '1px solid var(--primary-500)',
+                                            borderRadius: '6px',
+                                            fontSize: '13px',
+                                            fontWeight: '500',
+                                            background: 'white',
+                                            color: 'var(--primary-500)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            whiteSpace: 'nowrap',
+                                            height: '40px'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'var(--primary-500)';
+                                            e.currentTarget.style.color = 'white';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'white';
+                                            e.currentTarget.style.color = 'var(--primary-500)';
+                                        }}
+                                    >
+                                        Today
+                                    </button>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: '500', color: 'var(--gray-700)' }}>From Date</label>
+                                        <input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={(e) => setStartDate(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '9px 12px',
+                                                border: '1px solid var(--gray-300)',
+                                                borderRadius: '6px',
+                                                fontSize: '14px',
+                                                background: 'white',
+                                                height: '40px'
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: '500', color: 'var(--gray-700)' }}>To Date</label>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '9px 12px',
+                                                border: '1px solid var(--gray-300)',
+                                                borderRadius: '6px',
+                                                fontSize: '14px',
+                                                background: 'white',
+                                                height: '40px'
+                                            }}
+                                        />
+                                    </div>
+                                    {(startDate || endDate) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setStartDate('');
+                                                setEndDate('');
+                                            }}
+                                            style={{
+                                                padding: '10px 16px',
+                                                border: '1px solid var(--gray-300)',
+                                                borderRadius: '6px',
+                                                fontSize: '13px',
+                                                fontWeight: '500',
+                                                background: 'white',
+                                                color: 'var(--gray-600)',
+                                                cursor: 'pointer',
+                                                whiteSpace: 'nowrap',
+                                                height: '40px'
+                                            }}
+                                        >
+                                            Clear Dates
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -174,6 +401,7 @@ export default function LeadsPage() {
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
+                                                <th>Created By</th>
                                                 <th>Patient Name</th>
                                                 <th>Contact</th>
                                                 <th>Status</th>
@@ -187,6 +415,11 @@ export default function LeadsPage() {
                                                 <tr key={lead.id}>
                                                     <td>
                                                         <span className="text-mono">{lead.id}</span>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--gray-700)' }}>
+                                                            {lead.created_by_name || 'Unknown'}
+                                                        </div>
                                                     </td>
                                                     <td>
                                                         <div className="text-bold">{lead.first_name} {lead.last_name}</div>
