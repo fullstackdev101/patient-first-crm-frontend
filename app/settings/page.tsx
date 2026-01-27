@@ -1,303 +1,272 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
+import ProtectedRoute from '../components/ProtectedRoute';
+import { useAuthStore } from '@/store';
+import axios from '@/lib/axios';
 
 export default function SettingsPage() {
-    const [settings, setSettings] = useState({
-        systemName: 'PatientFirst CRM',
-        timeZone: 'UTC-05:00 (Eastern Time)',
-        dateFormat: 'MM/DD/YYYY',
-        emailNotifications: true,
-        leadStatusChanges: true,
-        newComments: false,
-        dailySummary: true,
-        twoFactorAuth: false,
-        sessionTimeout: '30 minutes',
-        passwordExpiration: '90 days',
-        theme: 'Light',
-        compactMode: false,
-    });
+    const router = useRouter();
+    const { user } = useAuthStore();
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-    const handleSave = () => {
-        console.log('Settings saved:', settings);
-        alert('Settings saved successfully! (Data logged to console)');
+    // Password validation function
+    const validatePassword = (password: string): { valid: boolean; message: string } => {
+        if (password.length < 6) {
+            return { valid: false, message: 'Password must be at least 6 characters long' };
+        }
+
+        // Check for at least 1 special character
+        const specialCharRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+        if (!specialCharRegex.test(password)) {
+            return { valid: false, message: 'Password must contain at least 1 special character' };
+        }
+
+        // Check for at least 1 number OR 1 letter
+        const hasNumber = /\d/.test(password);
+        const hasLetter = /[a-zA-Z]/.test(password);
+        if (!hasNumber && !hasLetter) {
+            return { valid: false, message: 'Password must contain at least 1 number or letter' };
+        }
+
+        return { valid: true, message: '' };
     };
 
-    const handleReset = () => {
-        setSettings({
-            systemName: 'PatientFirst CRM',
-            timeZone: 'UTC-05:00 (Eastern Time)',
-            dateFormat: 'MM/DD/YYYY',
-            emailNotifications: true,
-            leadStatusChanges: true,
-            newComments: false,
-            dailySummary: true,
-            twoFactorAuth: false,
-            sessionTimeout: '30 minutes',
-            passwordExpiration: '90 days',
-            theme: 'Light',
-            compactMode: false,
-        });
-        alert('Settings reset to defaults!');
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setSuccess('');
+
+        // Validation
+        if (!newPassword || !confirmPassword) {
+            setError('All fields are required');
+            return;
+        }
+
+        // Validate password strength
+        const validation = validatePassword(newPassword);
+        if (!validation.valid) {
+            setError(validation.message);
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setError('New password and confirm password do not match');
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const response = await axios.put('/users/change-password', {
+                newPassword
+            });
+
+            if (response.data.success) {
+                setSuccess('Password changed successfully!');
+                setNewPassword('');
+                setConfirmPassword('');
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to change password');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <div className="dashboard-container">
-            <Sidebar />
+        <ProtectedRoute>
+            <div className="dashboard-container">
+                <Sidebar />
 
-            <div className="main-content">
-                <Topbar />
+                <div className="main-content">
+                    <Topbar />
 
-                <main className="content">
-                    <div style={{ maxWidth: '800px' }}>
-                        <div className="page-header">
+                    <main className="content">
+                        <div className="page-header" style={{ marginBottom: '24px' }}>
                             <h2 className="page-title">Settings</h2>
-                            <p className="page-subtitle">Manage your system preferences and configurations</p>
+                            <p className="page-subtitle">Manage your account settings and preferences</p>
                         </div>
 
-                        {/* General Settings */}
-                        <div className="card" style={{ marginBottom: '24px' }}>
-                            <div className="card-header">
-                                <h3 className="card-title">General Settings</h3>
-                            </div>
-                            <div className="card-content">
-                                <div className="settings-section">
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>System Name</h4>
-                                            <p>The name displayed across the application</p>
-                                        </div>
+                        <div className="card" style={{ maxWidth: '600px' }}>
+                            <div style={{ padding: '24px' }}>
+                                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+                                    Change Password
+                                </h3>
+                                <p style={{ fontSize: '14px', color: 'var(--gray-600)', marginBottom: '24px' }}>
+                                    Update your password to keep your account secure
+                                </p>
+
+                                {/* Success Message */}
+                                {success && (
+                                    <div style={{
+                                        padding: '12px 16px',
+                                        background: '#d1fae5',
+                                        border: '1px solid #6ee7b7',
+                                        borderRadius: '8px',
+                                        color: '#065f46',
+                                        fontSize: '14px',
+                                        marginBottom: '20px',
+                                    }}>
+                                        {success}
+                                    </div>
+                                )}
+
+                                {/* Error Message */}
+                                {error && (
+                                    <div style={{
+                                        padding: '12px 16px',
+                                        background: '#fee2e2',
+                                        border: '1px solid #fecaca',
+                                        borderRadius: '8px',
+                                        color: '#dc2626',
+                                        fontSize: '14px',
+                                        marginBottom: '20px',
+                                    }}>
+                                        {error}
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleSubmit}>
+                                    {/* New Password */}
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <label style={{
+                                            display: 'block',
+                                            marginBottom: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            color: 'var(--gray-700)'
+                                        }}>
+                                            New Password *
+                                        </label>
                                         <input
-                                            type="text"
-                                            className="form-input"
-                                            value={settings.systemName}
-                                            onChange={(e) => setSettings({ ...settings, systemName: e.target.value })}
-                                            style={{ width: '250px' }}
+                                            type="password"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            placeholder="Enter your new password"
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 12px',
+                                                border: '1px solid var(--gray-300)',
+                                                borderRadius: '8px',
+                                                fontSize: '14px'
+                                            }}
+                                            required
+                                        />
+                                        <p style={{ fontSize: '12px', color: 'var(--gray-500)', marginTop: '4px' }}>
+                                            Minimum 6 characters, 1 special character, at least 1 number or letter
+                                        </p>
+                                    </div>
+
+                                    {/* Confirm New Password */}
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <label style={{
+                                            display: 'block',
+                                            marginBottom: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            color: 'var(--gray-700)'
+                                        }}>
+                                            Confirm New Password *
+                                        </label>
+                                        <input
+                                            type="password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            placeholder="Confirm your new password"
+                                            style={{
+                                                width: '100%',
+                                                padding: '10px 12px',
+                                                border: '1px solid var(--gray-300)',
+                                                borderRadius: '8px',
+                                                fontSize: '14px'
+                                            }}
+                                            required
                                         />
                                     </div>
 
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Time Zone</h4>
-                                            <p>Default time zone for the system</p>
-                                        </div>
-                                        <select
-                                            className="form-input"
-                                            value={settings.timeZone}
-                                            onChange={(e) => setSettings({ ...settings, timeZone: e.target.value })}
-                                            style={{ width: '250px' }}
+                                    {/* Action Buttons */}
+                                    <div style={{ display: 'flex', gap: '12px' }}>
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            style={{
+                                                padding: '10px 24px',
+                                                background: isLoading ? 'var(--gray-400)' : 'var(--primary-500)',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                fontSize: '14px',
+                                                fontWeight: '600',
+                                                cursor: isLoading ? 'not-allowed' : 'pointer'
+                                            }}
                                         >
-                                            <option>UTC-05:00 (Eastern Time)</option>
-                                            <option>UTC-06:00 (Central Time)</option>
-                                            <option>UTC-07:00 (Mountain Time)</option>
-                                            <option>UTC-08:00 (Pacific Time)</option>
-                                        </select>
+                                            {isLoading ? 'Saving...' : 'Save Changes'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => router.push('/')}
+                                            style={{
+                                                padding: '10px 24px',
+                                                background: 'var(--gray-200)',
+                                                color: 'var(--gray-700)',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                fontSize: '14px',
+                                                fontWeight: '600',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
                                     </div>
+                                </form>
+                            </div>
+                        </div>
 
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Date Format</h4>
-                                            <p>How dates are displayed throughout the system</p>
-                                        </div>
-                                        <select
-                                            className="form-input"
-                                            value={settings.dateFormat}
-                                            onChange={(e) => setSettings({ ...settings, dateFormat: e.target.value })}
-                                            style={{ width: '250px' }}
-                                        >
-                                            <option>MM/DD/YYYY</option>
-                                            <option>DD/MM/YYYY</option>
-                                            <option>YYYY-MM-DD</option>
-                                        </select>
+                        {/* User Information Card */}
+                        <div className="card" style={{ maxWidth: '600px', marginTop: '24px' }}>
+                            <div style={{ padding: '24px' }}>
+                                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>
+                                    Account Information
+                                </h3>
+                                <div style={{ display: 'grid', gap: '12px' }}>
+                                    <div>
+                                        <span style={{ fontSize: '14px', color: 'var(--gray-600)' }}>Name:</span>
+                                        <span style={{ fontSize: '14px', fontWeight: '500', marginLeft: '8px' }}>
+                                            {user?.name}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span style={{ fontSize: '14px', color: 'var(--gray-600)' }}>Email:</span>
+                                        <span style={{ fontSize: '14px', fontWeight: '500', marginLeft: '8px' }}>
+                                            {user?.email}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span style={{ fontSize: '14px', color: 'var(--gray-600)' }}>Username:</span>
+                                        <span style={{ fontSize: '14px', fontWeight: '500', marginLeft: '8px' }}>
+                                            {user?.username}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span style={{ fontSize: '14px', color: 'var(--gray-600)' }}>Role:</span>
+                                        <span style={{ fontSize: '14px', fontWeight: '500', marginLeft: '8px' }}>
+                                            {user?.role}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Notification Settings */}
-                        <div className="card" style={{ marginBottom: '24px' }}>
-                            <div className="card-header">
-                                <h3 className="card-title">Notification Settings</h3>
-                            </div>
-                            <div className="card-content">
-                                <div className="settings-section">
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Email Notifications</h4>
-                                            <p>Receive email alerts for important updates</p>
-                                        </div>
-                                        <label className="toggle-switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.emailNotifications}
-                                                onChange={(e) => setSettings({ ...settings, emailNotifications: e.target.checked })}
-                                            />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </div>
-
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Lead Status Changes</h4>
-                                            <p>Get notified when lead status is updated</p>
-                                        </div>
-                                        <label className="toggle-switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.leadStatusChanges}
-                                                onChange={(e) => setSettings({ ...settings, leadStatusChanges: e.target.checked })}
-                                            />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </div>
-
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>New Comments</h4>
-                                            <p>Receive alerts for new comments on leads</p>
-                                        </div>
-                                        <label className="toggle-switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.newComments}
-                                                onChange={(e) => setSettings({ ...settings, newComments: e.target.checked })}
-                                            />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </div>
-
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Daily Summary</h4>
-                                            <p>Get a daily email summary of activities</p>
-                                        </div>
-                                        <label className="toggle-switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.dailySummary}
-                                                onChange={(e) => setSettings({ ...settings, dailySummary: e.target.checked })}
-                                            />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Security Settings */}
-                        <div className="card" style={{ marginBottom: '24px' }}>
-                            <div className="card-header">
-                                <h3 className="card-title">Security Settings</h3>
-                            </div>
-                            <div className="card-content">
-                                <div className="settings-section">
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Two-Factor Authentication</h4>
-                                            <p>Add an extra layer of security to your account</p>
-                                        </div>
-                                        <label className="toggle-switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.twoFactorAuth}
-                                                onChange={(e) => setSettings({ ...settings, twoFactorAuth: e.target.checked })}
-                                            />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </div>
-
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Session Timeout</h4>
-                                            <p>Automatically log out after period of inactivity</p>
-                                        </div>
-                                        <select
-                                            className="form-input"
-                                            value={settings.sessionTimeout}
-                                            onChange={(e) => setSettings({ ...settings, sessionTimeout: e.target.value })}
-                                            style={{ width: '250px' }}
-                                        >
-                                            <option>15 minutes</option>
-                                            <option>30 minutes</option>
-                                            <option>1 hour</option>
-                                            <option>2 hours</option>
-                                            <option>Never</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Password Expiration</h4>
-                                            <p>Require password changes periodically</p>
-                                        </div>
-                                        <select
-                                            className="form-input"
-                                            value={settings.passwordExpiration}
-                                            onChange={(e) => setSettings({ ...settings, passwordExpiration: e.target.value })}
-                                            style={{ width: '250px' }}
-                                        >
-                                            <option>30 days</option>
-                                            <option>90 days</option>
-                                            <option>180 days</option>
-                                            <option>Never</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Appearance Settings */}
-                        <div className="card" style={{ marginBottom: '24px' }}>
-                            <div className="card-header">
-                                <h3 className="card-title">Appearance</h3>
-                            </div>
-                            <div className="card-content">
-                                <div className="settings-section">
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Theme</h4>
-                                            <p>Choose your preferred color theme</p>
-                                        </div>
-                                        <select
-                                            className="form-input"
-                                            value={settings.theme}
-                                            onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
-                                            style={{ width: '250px' }}
-                                        >
-                                            <option>Light</option>
-                                            <option>Dark</option>
-                                            <option>Auto (System)</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="settings-item">
-                                        <div className="settings-item-info">
-                                            <h4>Compact Mode</h4>
-                                            <p>Reduce spacing for a denser layout</p>
-                                        </div>
-                                        <label className="toggle-switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.compactMode}
-                                                onChange={(e) => setSettings({ ...settings, compactMode: e.target.checked })}
-                                            />
-                                            <span className="toggle-slider"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Save Button */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                            <button type="button" className="btn-secondary" onClick={handleReset}>Reset to Defaults</button>
-                            <button type="button" className="btn-primary" onClick={handleSave}>Save Settings</button>
-                        </div>
-                    </div>
-                </main>
+                    </main>
+                </div>
             </div>
-        </div>
+        </ProtectedRoute>
     );
 }

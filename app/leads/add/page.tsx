@@ -7,11 +7,13 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useLeadsStore } from '@/store';
+import { useAuthStore } from '@/store';
 import { maskSSN, maskPhone, maskAccountNumber, maskRoutingNumber, unmask } from '@/lib/inputMask';
 
 export default function AddLeadPage() {
     const router = useRouter();
     const { createLead, isLoading, error, clearError } = useLeadsStore();
+    const { user } = useAuthStore();
 
     const [formData, setFormData] = useState({
         first_name: '',
@@ -119,11 +121,22 @@ export default function AddLeadPage() {
 
             await createLead(leadData);
             alert('Lead created successfully!');
-            router.push('/leads');
+
+            // Role-based redirect
+            const userRole = user?.role?.trim();
+            if (userRole === 'Agent' || userRole === 'License Agent') {
+                router.push('/leads-agent');
+            } else {
+                router.push('/leads');
+            }
         } catch (err: any) {
             alert(err.response?.data?.message || error || 'Failed to create lead. Please try again.');
         }
     };
+
+    // Determine leads list path based on user role
+    const userRole = user?.role?.trim();
+    const leadsListPath = (userRole === 'Agent' || userRole === 'License Agent') ? '/leads-agent' : '/leads';
 
     return (
         <ProtectedRoute>
@@ -136,7 +149,7 @@ export default function AddLeadPage() {
                     <main className="content">
                         <div style={{ maxWidth: '1000px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                                <Link href="/leads" className="btn-icon" style={{ width: '40px', height: '40px' }}>
+                                <Link href={leadsListPath} className="btn-icon" style={{ width: '40px', height: '40px' }}>
                                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                                     </svg>
@@ -577,7 +590,7 @@ export default function AddLeadPage() {
 
                                 {/* Form Actions */}
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                                    <Link href="/leads" className="btn-secondary">Cancel</Link>
+                                    <Link href={leadsListPath} className="btn-secondary">Cancel</Link>
                                     <button type="submit" className="btn-primary">Create Lead</button>
                                 </div>
                             </form>

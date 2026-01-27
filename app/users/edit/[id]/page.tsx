@@ -7,6 +7,7 @@ import Sidebar from '../../../components/Sidebar';
 import Topbar from '../../../components/Topbar';
 import ProtectedRoute from '../../../components/ProtectedRoute';
 import { useUsersStore } from '@/store';
+import axios from '@/lib/axios';
 
 export default function EditUserPage() {
     const router = useRouter();
@@ -15,6 +16,7 @@ export default function EditUserPage() {
 
     const { currentUser, isLoading, error, fetchUserById, updateUser, clearError } = useUsersStore();
 
+    const [roles, setRoles] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         username: '',
@@ -23,6 +25,21 @@ export default function EditUserPage() {
         status: 'Active',
         role_id: 3,
     });
+
+    // Fetch roles on mount
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await axios.get('/roles');
+                if (response.data.success) {
+                    setRoles(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+            }
+        };
+        fetchRoles();
+    }, []);
 
     useEffect(() => {
         if (userId) {
@@ -184,11 +201,11 @@ export default function EditUserPage() {
                                                     value={formData.role_id}
                                                     onChange={(e) => setFormData({ ...formData, role_id: parseInt(e.target.value) })}
                                                 >
-                                                    <option value={1}>Admin</option>
-                                                    <option value={2}>Manager</option>
-                                                    <option value={3}>Agent</option>
-                                                    <option value={4}>QA</option>
-                                                    <option value={5}>Reviewer</option>
+                                                    {roles.map((role) => (
+                                                        <option key={role.id} value={role.id}>
+                                                            {role.role}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
 

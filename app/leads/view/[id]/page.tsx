@@ -255,6 +255,97 @@ export default function ViewLeadPage() {
                                         </div >
                                     </div >
                                 </div >
+
+                                {/* Health Questionnaire */}
+                                <div className="card" style={{ marginBottom: '24px' }}>
+                                    <div className="card-header">
+                                        <h3 className="card-title">Health Questionnaire</h3>
+                                    </div>
+                                    <div className="card-content" style={{ padding: '24px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                            <QuestionField
+                                                question="1. Are you currently hospitalized, confined to a nursing facility, a bed, or a wheelchair due to chronic illness or disease, currently using oxygen equipment to assist in breathing, receiving Hospice Care or home health care, or had an amputation caused by disease, or do you currently have any form of cancer (excluding basal cell skin cancer) diagnosed or treated by a medical professional, or do you require assistance (from anyone) with activities of daily living such as bathing, dressing, eating or toileting?"
+                                                answer={currentLead.hospitalized_nursing_oxygen_cancer_assistance}
+                                            />
+                                            <QuestionField
+                                                question="2. Have you had or been medically advised to have an organ transplant or kidney dialysis, or have you been medically diagnosed as having congestive heart failure (CHF), Alzheimer's, dementia, mental incapacity, Lou Gehrig's disease (ALS), liver failure, respiratory failure, or been diagnosed by a medical professional as having a terminal medical condition or end-stage disease that is expected to result in death in the next 12 months?"
+                                                answer={currentLead.organ_transplant_terminal_condition}
+                                            />
+                                            <QuestionField
+                                                question="3. Have you been medically treated or diagnosed by a medical professional as having Acquired Immune Deficiency Syndrome (AIDS), AIDS related complex (ARC), or any immune deficiency related disorder or tested positive for the Human Immunodeficiency Virus (HIV)?"
+                                                answer={currentLead.aids_hiv_immune_deficiency}
+                                            />
+                                            <div style={{ padding: '12px', background: 'var(--rose-100)', border: '1px solid var(--rose-500)', borderRadius: '8px' }}>
+                                                <p style={{ fontSize: '13px', color: 'var(--rose-800)', fontWeight: '600', margin: 0 }}>If any answer to questions 1 through 3 is answered "Yes" the Proposed Insured is not eligible for any coverage.</p>
+                                            </div>
+                                            <QuestionField
+                                                question="4. Have you ever been medically diagnosed or treated for complications of diabetes, including insulin shock, diabetic coma, retinopathy (eye), nephropathy (kidney), neuropathy (nerve damage/pain), or used insulin prior to age 50?"
+                                                answer={currentLead.diabetes_complications_insulin}
+                                            />
+                                            <QuestionField
+                                                question="5. Have you ever been medically diagnosed, treated or taken medication for renal insufficiency, kidney failure, chronic kidney disease, or more than one occurrence of cancer in your lifetime (excluding basal cell skin cancer)?"
+                                                answer={currentLead.kidney_disease_multiple_cancers}
+                                            />
+                                            <QuestionField
+                                                question="6. Within the past 2 years have you had any diagnostic testing (excluding tests related to Human Immunodeficiency Virus (HIV)), surgery, or hospitalization advised by a medical professional which has not been completed or for which the results have not been received?"
+                                                answer={currentLead.pending_tests_surgery_hospitalization}
+                                            />
+                                            <QuestionField
+                                                question="7a. Within the past 2 years have you been medically diagnosed or treated for angina (chest pain), stroke or TIA, cardiomyopathy, systemic lupus (SLE), cirrhosis, Hepatitis C, chronic hepatitis, chronic pancreatitis, chronic obstructive pulmonary disease (COPD), emphysema, chronic bronchitis, or required oxygen equipment to assist in breathing?"
+                                                answer={currentLead.angina_stroke_lupus_copd_hepatitis}
+                                            />
+                                            <QuestionField
+                                                question="7b. Within the past 2 years have you had a heart attack or aneurysm, or had or been medically advised to have any type of heart, brain or circulatory surgery (including, but not limited to a pacemaker insertion, defibrillator placement), or any procedure to improve circulation?"
+                                                answer={currentLead.heart_attack_aneurysm_surgery}
+                                            />
+                                            <QuestionField
+                                                question="7c. Within the past 2 years have you been medically diagnosed, or treated, or taken medication for any form of cancer (excluding basal cell skin cancer)?"
+                                                answer={currentLead.cancer_treatment_2years}
+                                            />
+                                            <QuestionField
+                                                question="7d. Within the past 2 years have you used illegal drugs, abused alcohol or drugs, had or been recommended by a medical professional to have treatment or counseling for alcohol or drug use or been advised to discontinue use of alcohol or drugs?"
+                                                answer={currentLead.substance_abuse_treatment}
+                                            />
+                                            <div style={{ padding: '12px', background: 'var(--amber-100)', border: '1px solid var(--amber-500)', borderRadius: '8px' }}>
+                                                <p style={{ fontSize: '13px', color: 'var(--amber-800)', fontWeight: '600', margin: 0 }}>If any answer to questions 4 through 7 is answered "Yes" the Proposed Insured should apply for the Return of Premium Death Benefit Plan.</p>
+                                            </div>
+                                            <QuestionField
+                                                question="8a. Within the past 3 years have you been medically diagnosed or treated, or hospitalized for stroke, angina (chest pain), heart attack, aneurysm, heart or circulatory surgery or any procedure to improve circulation?"
+                                                answer={currentLead.cardiovascular_events_3years}
+                                            />
+                                            <QuestionField
+                                                question="8b. Within the past 3 years have you been medically diagnosed or treated, or taken medication for any form of cancer (excluding basal cell skin cancer), emphysema, chronic bronchitis, chronic obstructive pulmonary disease (COPD), ulcerative colitis, cirrhosis, Hepatitis C, or liver disease?"
+                                                answer={currentLead.cancer_respiratory_liver_3years}
+                                            />
+                                            <QuestionField
+                                                question="8c. Within the past 3 years have you been medically diagnosed or treated, or hospitalized for paralysis of two or more extremities or cerebral palsy, multiple sclerosis, seizures, Parkinson's disease or muscular dystrophy?"
+                                                answer={currentLead.neurological_conditions_3years}
+                                            />
+                                            <div style={{ padding: '12px', background: 'var(--secondary-50)', border: '1px solid var(--secondary-500)', borderRadius: '8px' }}>
+                                                <p style={{ fontSize: '13px', color: 'var(--secondary-600)', fontWeight: '600', margin: 0 }}>If any answer to question 8 is answered "Yes" the Proposed Insured should apply for the Graded Death Benefit Plan.</p>
+                                            </div>
+                                            <div style={{ padding: '12px', background: 'var(--primary-50)', border: '1px solid var(--primary-500)', borderRadius: '8px' }}>
+                                                <p style={{ fontSize: '13px', color: 'var(--primary-600)', fontWeight: '600', margin: 0 }}>If all questions 1 through 8 are answered "No" the Proposed Insured should apply for the Immediate Death Benefit Plan.</p>
+                                            </div>
+                                            {currentLead.health_comments && (
+                                                <ReadOnlyField label="Health Comments" value={currentLead.health_comments} multiline />
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Coronavirus Questionnaire */}
+                                <div className="card" style={{ marginBottom: '24px' }}>
+                                    <div className="card-header">
+                                        <h3 className="card-title">Coronavirus Questionnaire</h3>
+                                    </div>
+                                    <div className="card-content" style={{ padding: '24px' }}>
+                                        <QuestionField
+                                            question="Within the past 6 months, have you been hospitalized or diagnosed by a medical professional with ongoing medical complications due to the novel coronavirus (COVID-19) or are you currently diagnosed by a medical professional with or being treated for the novel coronavirus (COVID-19)?"
+                                            answer={currentLead.covid_question}
+                                        />
+                                    </div>
+                                </div>
                             </div >
 
                             {/* Right Column - Status & Comments */}
@@ -327,8 +418,8 @@ export default function ViewLeadPage() {
                                                                 width: '20px',
                                                                 height: '20px',
                                                                 borderRadius: '50%',
-                                                                border: `3px solid ${isActive ? '#14b8a6' : isPast ? '#14b8a6' : '#e5e7eb'}`,
-                                                                background: isActive ? '#14b8a6' : isPast ? '#14b8a6' : 'white',
+                                                                border: `3px solid ${isActive ? '#10b981' : '#e5e7eb'}`,
+                                                                background: isActive ? '#10b981' : 'white',
                                                                 zIndex: 1
                                                             }}></div>
 
@@ -352,8 +443,11 @@ export default function ViewLeadPage() {
                                                                                 return '#dbeafe';
                                                                             case 'QA Review':
                                                                                 return '#e9d5ff';
+                                                                            case 'QA Manager Review':
+                                                                                return '#fce7f3';
                                                                             case 'Rejected':
                                                                                 return '#fee2e2';
+                                                                            case 'New':
                                                                             case 'Entry':
                                                                                 return '#f3f4f6';
                                                                             default:
@@ -371,8 +465,11 @@ export default function ViewLeadPage() {
                                                                                 return '#1e40af';
                                                                             case 'QA Review':
                                                                                 return '#6b21a8';
+                                                                            case 'QA Manager Review':
+                                                                                return '#9f1239';
                                                                             case 'Rejected':
                                                                                 return '#991b1b';
+                                                                            case 'New':
                                                                             case 'Entry':
                                                                                 return '#4b5563';
                                                                             default:
@@ -486,6 +583,44 @@ function ReadOnlyField({ label, value, multiline = false }: { label: string; val
                 whiteSpace: multiline ? 'pre-wrap' : 'normal'
             }}>
                 {value || '—'}
+            </div>
+        </div>
+    );
+}
+
+// Question field component for health questionnaire
+function QuestionField({ question, answer }: { question: string; answer: any }) {
+    const isYes = answer === true || answer === 'yes' || answer === 1;
+    const isNo = answer === false || answer === 'no' || answer === 0;
+
+    return (
+        <div style={{ padding: '16px', background: 'var(--gray-50)', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
+            <p style={{ fontSize: '14px', color: 'var(--gray-700)', marginBottom: '12px', lineHeight: '1.6' }}>
+                {question}
+            </p>
+            <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    background: isYes ? '#fce7f3' : 'white',
+                    color: isYes ? '#be123c' : 'var(--gray-500)',
+                    border: `2px solid ${isYes ? '#f43f5e' : '#d1d5db'}`
+                }}>
+                    Yes {isYes && '✓'}
+                </div>
+                <div style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    background: isNo ? '#fce7f3' : 'white',
+                    color: isNo ? '#be123c' : 'var(--gray-500)',
+                    border: `2px solid ${isNo ? '#f43f5e' : '#d1d5db'}`
+                }}>
+                    No {isNo && '✓'}
+                </div>
             </div>
         </div>
     );

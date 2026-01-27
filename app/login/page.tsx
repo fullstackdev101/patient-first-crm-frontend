@@ -29,7 +29,7 @@ export default function LoginPage() {
             // Small delay to ensure state is persisted to localStorage
             await new Promise(resolve => setTimeout(resolve, 100));
             // If login is successful, redirect to dashboard
-            router.push('/');
+            router.replace('/dashboard');
         } catch (err: any) {
             // Get error details from response
             const errorMessage = err.response?.data?.message || authError || 'Login failed. Please try again.';
@@ -157,10 +157,10 @@ export default function LoginPage() {
                         {(localError || authError) && (
                             <div style={{
                                 padding: '12px 16px',
-                                background: errorType === 'IP_RESTRICTED' ? '#fef3c7' : '#fee2e2',
-                                border: errorType === 'IP_RESTRICTED' ? '1px solid #fcd34d' : '1px solid #fecaca',
+                                background: '#fee2e2', // Red background for all errors
+                                border: '1px solid #fecaca', // Red border
                                 borderRadius: '8px',
-                                color: errorType === 'IP_RESTRICTED' ? '#92400e' : '#dc2626',
+                                color: '#dc2626', // Red text
                                 fontSize: '14px',
                                 marginBottom: '16px',
                                 display: 'flex',
