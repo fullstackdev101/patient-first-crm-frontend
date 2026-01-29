@@ -6,18 +6,18 @@ import { useEffect, useState } from 'react';
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const [userRole, setUserRole] = useState<string | null>(null);
+    const [userRoleId, setUserRoleId] = useState<number | null>(null);
 
     useEffect(() => {
-        // Get user role from localStorage (Zustand persist stores in 'auth-storage')
+        // Get user role_id from localStorage (Zustand persist stores in 'auth-storage')
         const authStorageStr = localStorage.getItem('auth-storage');
         if (authStorageStr) {
             try {
                 const authStorage = JSON.parse(authStorageStr);
-                const role = authStorage.state?.user?.role?.trim() || null;
-                console.log('🔍 Sidebar - User role from localStorage:', role);
+                const roleId = authStorage.state?.user?.role_id || null;
+                console.log('🔍 Sidebar - User role_id from localStorage:', roleId);
                 console.log('🔍 Sidebar - Full user object:', authStorage.state?.user);
-                setUserRole(role);
+                setUserRoleId(roleId);
             } catch (error) {
                 console.error('Error parsing auth-storage from localStorage:', error);
             }
@@ -33,22 +33,22 @@ export default function Sidebar() {
 
     // Define which modules each role can access
     const canAccessModule = (module: string) => {
-        console.log(`🔍 Sidebar - Checking access for module: ${module}, userRole: ${userRole}`);
+        console.log(`🔍 Sidebar - Checking access for module: ${module}, userRoleId: ${userRoleId}`);
 
-        if (!userRole) {
+        if (!userRoleId) {
             console.log('⚠️ Sidebar - No role loaded, showing all modules');
             return true; // Show all if role not loaded yet
         }
 
-        // Agent and License Agent can access Dashboard and Leads only
-        if (userRole === 'Agent' || userRole === 'License Agent' || userRole === 'QA Review') {
+        // Agent (3), License Agent (4), and QA Review (5) can access Dashboard and Leads only
+        if (userRoleId === 3 || userRoleId === 4 || userRoleId === 5) {
             const hasAccess = module === 'dashboard' || module === 'leads';
-            console.log(`🔍 Sidebar - ${userRole} role, module ${module}: ${hasAccess ? 'ALLOWED' : 'DENIED'}`);
+            console.log(`🔍 Sidebar - Role ID ${userRoleId}, module ${module}: ${hasAccess ? 'ALLOWED' : 'DENIED'}`);
             return hasAccess;
         }
 
         // All other roles can access everything
-        console.log(`🔍 Sidebar - Role ${userRole}, module ${module}: ALLOWED`);
+        console.log(`🔍 Sidebar - Role ID ${userRoleId}, module ${module}: ALLOWED`);
         return true;
     };
 
@@ -75,7 +75,7 @@ export default function Sidebar() {
 
                 {canAccessModule('leads') && (
                     <Link
-                        href={userRole === 'Agent' ? '/leads-agent' : '/leads'}
+                        href={userRoleId === 3 ? '/leads-agent' : '/leads'}
                         className={`nav-item ${isActive('/leads') || isActive('/leads-agent') ? 'active' : ''}`}
                     >
                         <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

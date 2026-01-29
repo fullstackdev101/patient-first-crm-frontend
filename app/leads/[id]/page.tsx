@@ -1024,7 +1024,7 @@ export default function EditLeadPage() {
                                         </div>
                                         <div className="card-content">
                                             <div className="form-group">
-                                                <label className="form-label" style={{ fontWeight: '500', color: '#0f766e' }}>Lead Status *</label>
+                                                <label className="form-label" style={{ fontWeight: '500', color: '#0f766e' }}>Lead Status</label>
                                                 <select
                                                     className="form-input"
                                                     value={formData.status}
@@ -1036,7 +1036,10 @@ export default function EditLeadPage() {
                                                         fontWeight: '500'
                                                     }}
                                                 >
-                                                    {statuses.map((status) => (
+                                                    {/* Not selected / null option */}
+                                                    <option value="">-- Select Status --</option>
+                                                    {/* Only show Pending, Approved, Rejected for manual selection */}
+                                                    {statuses.filter(status => [5, 6, 7].includes(status.id)).map((status) => (
                                                         <option key={status.id} value={status.id}>
                                                             {status.status_name}
                                                         </option>
@@ -1083,7 +1086,7 @@ export default function EditLeadPage() {
                                                         gap: '8px'
                                                     }}>
                                                         <span style={{ fontSize: '16px', marginTop: '1px' }}>ℹ️</span>
-                                                        <span>Please review all information above before changing the lead status</span>
+                                                        <span>Status will be automatically assigned based on the assigned agent's role. You can manually change to Pending, Approved, or Rejected if needed.</span>
                                                     </p>
                                                 </div>
                                             </div>

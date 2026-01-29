@@ -10,6 +10,7 @@ import NewLeadNotification from '../components/NewLeadNotification';
 import { useLeadsStore } from '@/store';
 import { useAuthStore } from '@/store';
 import axios from '@/lib/axios';
+import * as XLSX from 'xlsx';
 
 // Removed hardcoded LeadStatus type - now fetching from API
 
@@ -25,8 +26,8 @@ export default function LeadsPage() {
 
     // Access control: Redirect only Agent users to /leads-agent
     useEffect(() => {
-        const userRole = currentUser?.role?.trim();
-        if (userRole === 'Agent') {
+        const userRoleId = currentUser?.role_id;
+        if (userRoleId === 3) {
             router.replace('/leads-agent');
         }
     }, [currentUser, router]);
@@ -49,8 +50,7 @@ export default function LeadsPage() {
 
     // Local pagination state
     const [currentPage, setCurrentPage] = useState(1);
-
-    const itemsPerPage = 5;
+    const [itemsPerPage, setItemsPerPage] = useState(5);
 
     // Reset to page 1 when filters change
     useEffect(() => {
@@ -94,13 +94,7 @@ export default function LeadsPage() {
         fetchAssignedUsers();
     }, []);
 
-    // Auto-select License Agent status for License Agent users
-    useEffect(() => {
-        const userRole = currentUser?.role?.trim();
-        if (userRole === 'License Agent' && licenseAgentStatusId) {
-            setStatusFilter(licenseAgentStatusId);
-        }
-    }, [currentUser, licenseAgentStatusId]);
+
 
     // Refetch when filters change
     useEffect(() => {
@@ -156,7 +150,7 @@ export default function LeadsPage() {
         };
 
         fetchWithFilters();
-    }, [searchQuery, statusFilter, assignedUserFilter, startDate, endDate, currentPage]);
+    }, [searchQuery, statusFilter, assignedUserFilter, startDate, endDate, currentPage, itemsPerPage]);
 
     // Calculate pagination
     const totalPages = Math.ceil(totalLeads / itemsPerPage);
@@ -199,6 +193,108 @@ export default function LeadsPage() {
         }
     };
 
+    // Excel Export Function
+    const handleExportToExcel = async () => {
+        try {
+            // Build query params with current filters but no pagination
+            const params = new URLSearchParams();
+
+            if (searchQuery) params.append('search', searchQuery);
+            if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
+            if (assignedUserFilter && assignedUserFilter !== 'All') params.append('assigned_to', assignedUserFilter);
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+
+            // Fetch all leads without pagination limit
+            params.append('page', '1');
+            params.append('limit', '10000'); // Large limit to get all leads
+
+            const response = await axios.get(`/leads?${params}`);
+
+            if (response.data.success) {
+                const leadsData = response.data.data.leads;
+
+                // Format data for Excel - Include ALL columns
+                const excelData = leadsData.map((lead: any) => ({
+                    // Basic Information
+                    'ID': lead.id,
+                    'Created By': lead.created_by_name || 'Unknown',
+                    'Created Date': lead.created_at ? new Date(lead.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A',
+                    'Updated Date': lead.updated_at ? new Date(lead.updated_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A',
+                    'Status': lead.status,
+                    'Assigned Agent': lead.assigned_to ? `${lead.assigned_to} (${lead.assigned_to_role || 'Agent'})` : 'Unassigned',
+
+                    // Personal Information
+                    'First Name': lead.first_name,
+                    'Middle Initial': lead.middle_initial || '',
+                    'Last Name': lead.last_name,
+                    'Date of Birth': lead.date_of_birth || 'N/A',
+                    'Phone': lead.phone,
+                    'Email': lead.email,
+                    'Address': lead.address || 'N/A',
+                    'State of Birth': lead.state_of_birth || 'N/A',
+                    'SSN': lead.ssn || 'N/A',
+
+                    // Medical Information
+                    'Height': lead.height || 'N/A',
+                    'Weight': lead.weight || 'N/A',
+                    'Insurance Provider': lead.insurance_provider || 'N/A',
+                    'Policy Number': lead.policy_number || 'N/A',
+                    'Medical Notes': lead.medical_notes || 'N/A',
+
+                    // Doctor Information
+                    'Doctor Name': lead.doctor_name || 'N/A',
+                    'Doctor Phone': lead.doctor_phone || 'N/A',
+                    'Doctor Address': lead.doctor_address || 'N/A',
+
+                    // Beneficiary & Plan Information
+                    'Beneficiary Details': lead.beneficiary_details || 'N/A',
+                    'Plan Details': lead.plan_details || 'N/A',
+
+                    // Health Questionnaire (Yes/No format)
+                    'Hospitalized/Nursing/Oxygen/Cancer Assistance': lead.hospitalized_nursing_oxygen_cancer_assistance ? 'Yes' : 'No',
+                    'Organ Transplant/Terminal Condition': lead.organ_transplant_terminal_condition ? 'Yes' : 'No',
+                    'AIDS/HIV/Immune Deficiency': lead.aids_hiv_immune_deficiency ? 'Yes' : 'No',
+                    'Diabetes Complications/Insulin': lead.diabetes_complications_insulin ? 'Yes' : 'No',
+                    'Kidney Disease/Multiple Cancers': lead.kidney_disease_multiple_cancers ? 'Yes' : 'No',
+                    'Pending Tests/Surgery/Hospitalization': lead.pending_tests_surgery_hospitalization ? 'Yes' : 'No',
+                    'Angina/Stroke/Lupus/COPD/Hepatitis': lead.angina_stroke_lupus_copd_hepatitis ? 'Yes' : 'No',
+                    'Heart Attack/Aneurysm/Surgery': lead.heart_attack_aneurysm_surgery ? 'Yes' : 'No',
+                    'Cancer Treatment (2 years)': lead.cancer_treatment_2years ? 'Yes' : 'No',
+                    'Substance Abuse Treatment': lead.substance_abuse_treatment ? 'Yes' : 'No',
+                    'Cardiovascular Events (3 years)': lead.cardiovascular_events_3years ? 'Yes' : 'No',
+                    'Cancer/Respiratory/Liver (3 years)': lead.cancer_respiratory_liver_3years ? 'Yes' : 'No',
+                    'Neurological Conditions (3 years)': lead.neurological_conditions_3years ? 'Yes' : 'No',
+                    'COVID Question': lead.covid_question ? 'Yes' : 'No',
+                    'Health Comments': lead.health_comments || 'N/A',
+
+                    // Banking Information
+                    'Bank Name': lead.bank_name || 'N/A',
+                    'Account Name': lead.account_name || 'N/A',
+                    'Account Number': lead.account_number || 'N/A',
+                    'Routing Number': lead.routing_number || 'N/A',
+                    'Account Type': lead.account_type || 'N/A',
+                    'Banking Comments': lead.banking_comments || 'N/A'
+                }));
+
+                // Create workbook and worksheet
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
+
+                // Generate filename with timestamp
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                const filename = `leads_export_${timestamp}.xlsx`;
+
+                // Download file
+                XLSX.writeFile(workbook, filename);
+            }
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            alert('Failed to export leads to Excel. Please try again.');
+        }
+    };
+
     return (
         <ProtectedRoute>
             <NewLeadNotification />
@@ -214,20 +310,50 @@ export default function LeadsPage() {
                                 <h2 className="page-title">Leads Management</h2>
                                 <p className="page-subtitle">Manage and track all patient leads</p>
                             </div>
-                            <Link href="/leads/add" className="btn-primary"
-                                style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: 'linear-gradient(135deg, var(--primary-500), var(--secondary-500))', color: 'white', borderRadius: '8px', fontSize: '14px', fontWeight: '600', transition: 'transform 0.2s' }}>
-                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                Add New Lead
-                            </Link>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                {/* Export to Excel button - Super Admin only */}
+                                {currentUser?.role_id === 1 && (
+                                    <button
+                                        onClick={handleExportToExcel}
+                                        style={{
+                                            textDecoration: 'none',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            padding: '12px 24px',
+                                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                                            color: 'white',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                                    >
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        Export to Excel
+                                    </button>
+                                )}
+                                <Link href="/leads/add" className="btn-primary"
+                                    style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: 'linear-gradient(135deg, var(--primary-500), var(--secondary-500))', color: 'white', borderRadius: '8px', fontSize: '14px', fontWeight: '600', transition: 'transform 0.2s' }}>
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Add New Lead
+                                </Link>
+                            </div>
                         </div>
 
                         {/* Filter Card */}
                         <div className="card" style={{ marginBottom: '24px' }}>
                             <div className="card-content" style={{ padding: '16px 24px' }}>
                                 {/* First Row: Search, Status, Assigned User */}
-                                <div style={{ display: 'grid', gridTemplateColumns: currentUser?.role?.trim() === 'License Agent' ? '1fr 1fr' : '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                                     <div className="search-box">
                                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                             style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)' }}>
@@ -248,13 +374,10 @@ export default function LeadsPage() {
                                             border: '1px solid var(--gray-300)',
                                             borderRadius: '8px',
                                             fontSize: '14px',
-                                            background: currentUser?.role?.trim() === 'License Agent' ? 'var(--gray-100)' : 'white',
-                                            cursor: currentUser?.role?.trim() === 'License Agent' ? 'not-allowed' : 'pointer',
-                                            opacity: currentUser?.role?.trim() === 'License Agent' ? 0.7 : 1
+                                            background: 'white'
                                         }}
                                         value={statusFilter || 'All'}
                                         onChange={(e) => setStatusFilter(e.target.value)}
-                                        disabled={currentUser?.role?.trim() === 'License Agent'}
                                     >
                                         <option value="All">All Statuses</option>
                                         {statuses.map((status) => (
@@ -263,20 +386,18 @@ export default function LeadsPage() {
                                             </option>
                                         ))}
                                     </select>
-                                    {currentUser?.role?.trim() !== 'License Agent' && (
-                                        <select
-                                            style={{ padding: '10px 12px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px', background: 'white' }}
-                                            value={assignedUserFilter || 'All'}
-                                            onChange={(e) => setAssignedUserFilter(e.target.value)}
-                                        >
-                                            <option value="All">All Assigned Users</option>
-                                            {assignedUsers.map((user) => (
-                                                <option key={user.id} value={user.id}>
-                                                    {user.name} ({user.role})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
+                                    <select
+                                        style={{ padding: '10px 12px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                                        value={assignedUserFilter || 'All'}
+                                        onChange={(e) => setAssignedUserFilter(e.target.value)}
+                                    >
+                                        <option value="All">All Assigned Users</option>
+                                        {assignedUsers.map((user) => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name} ({user.role})
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                                 {/* Second Row: Date Filters */}
                                 <div style={{
@@ -489,8 +610,28 @@ export default function LeadsPage() {
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
                                 }}>
-                                    <div style={{ fontSize: '14px', color: 'var(--gray-600)' }}>
-                                        Showing {startIndex + 1} to {endIndex} of {totalLeads} leads
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ fontSize: '14px', color: 'var(--gray-600)' }}>
+                                            Showing {startIndex + 1} to {endIndex} of {totalLeads} leads
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <label style={{ fontSize: '14px', color: 'var(--gray-600)', fontWeight: '500' }}>Per page:</label>
+                                            <select
+                                                value={itemsPerPage}
+                                                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    border: '1px solid var(--gray-300)',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px',
+                                                    background: 'white',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <option value={5}>5</option>
+                                                <option value={10}>10</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

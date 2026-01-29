@@ -20,8 +20,8 @@ export default function UsersPage() {
 
     // Access control: Redirect Agent and License Agent users
     useEffect(() => {
-        const userRole = currentUser?.role?.trim();
-        if (userRole === 'Agent' || userRole === 'License Agent') {
+        const userRoleId = currentUser?.role_id;
+        if (userRoleId === 3 || userRoleId === 4) {
             router.replace('/dashboard');
         }
     }, [currentUser, router]);
@@ -347,39 +347,53 @@ export default function UsersPage() {
                                                             </td>
                                                             <td>
                                                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                                                    <Link
-                                                                        href={`/users/assign-ip/${user.id}`}
-                                                                        className="btn-icon"
-                                                                        title="Assign IP"
-                                                                        style={{
-                                                                            padding: '8px',
-                                                                            border: '1px solid #d1d5db',
-                                                                            borderRadius: '6px',
-                                                                            background: 'white',
-                                                                            cursor: 'pointer',
-                                                                            color: '#0891b2',
-                                                                            display: 'inline-flex',
-                                                                            alignItems: 'center',
-                                                                            justifyContent: 'center'
-                                                                        }}
-                                                                    >
-                                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                                                                            </path>
-                                                                        </svg>
-                                                                    </Link>
-                                                                    <Link
-                                                                        href={`/users/edit/${user.id}`}
-                                                                        className="btn-icon"
-                                                                        title="Edit"
-                                                                    >
-                                                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                                                            </path>
-                                                                        </svg>
-                                                                    </Link>
+                                                                    {/* Hide Edit and Assign IP for Super Admin users */}
+                                                                    {user.role_id !== 1 ? (
+                                                                        <>
+                                                                            <Link
+                                                                                href={`/users/assign-ip/${user.id}`}
+                                                                                className="btn-icon"
+                                                                                title="Assign IP"
+                                                                                style={{
+                                                                                    padding: '8px',
+                                                                                    border: '1px solid #d1d5db',
+                                                                                    borderRadius: '6px',
+                                                                                    background: 'white',
+                                                                                    cursor: 'pointer',
+                                                                                    color: '#0891b2',
+                                                                                    display: 'inline-flex',
+                                                                                    alignItems: 'center',
+                                                                                    justifyContent: 'center'
+                                                                                }}
+                                                                            >
+                                                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                                                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                                                                    </path>
+                                                                                </svg>
+                                                                            </Link>
+                                                                            <Link
+                                                                                href={`/users/edit/${user.id}`}
+                                                                                className="btn-icon"
+                                                                                title="Edit"
+                                                                            >
+                                                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                                                    </path>
+                                                                                </svg>
+                                                                            </Link>
+                                                                        </>
+                                                                    ) : (
+                                                                        <span style={{
+                                                                            fontSize: '13px',
+                                                                            color: '#9ca3af',
+                                                                            fontStyle: 'italic',
+                                                                            padding: '8px'
+                                                                        }}>
+                                                                            Protected
+                                                                        </span>
+                                                                    )}
                                                                     {/* Delete button removed - user deletion disabled */}
                                                                 </div>
                                                             </td>

@@ -123,8 +123,8 @@ export default function AddLeadPage() {
             alert('Lead created successfully!');
 
             // Role-based redirect
-            const userRole = user?.role?.trim();
-            if (userRole === 'Agent' || userRole === 'License Agent') {
+            const userRoleId = user?.role_id;
+            if (userRoleId === 3 || userRoleId === 4) {
                 router.push('/leads-agent');
             } else {
                 router.push('/leads');
@@ -135,8 +135,8 @@ export default function AddLeadPage() {
     };
 
     // Determine leads list path based on user role
-    const userRole = user?.role?.trim();
-    const leadsListPath = (userRole === 'Agent' || userRole === 'License Agent') ? '/leads-agent' : '/leads';
+    const userRoleId = user?.role_id;
+    const leadsListPath = (userRoleId === 3 || userRoleId === 4) ? '/leads-agent' : '/leads';
 
     return (
         <ProtectedRoute>

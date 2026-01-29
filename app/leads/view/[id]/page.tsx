@@ -371,7 +371,10 @@ export default function ViewLeadPage() {
                                                 background: 'white'
                                             }}
                                         >
-                                            {statuses.map((status) => (
+                                            {/* Not selected / null option */}
+                                            <option value="">-- Select Status --</option>
+                                            {/* Only show Pending, Approved, Rejected for manual selection */}
+                                            {statuses.filter(status => [5, 6, 7].includes(status.id)).map((status) => (
                                                 <option key={status.id} value={status.id}>
                                                     {status.status_name}
                                                 </option>

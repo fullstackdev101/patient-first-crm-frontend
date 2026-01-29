@@ -28,8 +28,8 @@ export default function IPAccessPage() {
 
     // Access control: Redirect Agent and License Agent users
     useEffect(() => {
-        const userRole = currentUser?.role?.trim();
-        if (userRole === 'Agent' || userRole === 'License Agent') {
+        const userRoleId = currentUser?.role_id;
+        if (userRoleId === 3 || userRoleId === 4) {
             router.replace('/dashboard');
         }
     }, [currentUser, router]);
