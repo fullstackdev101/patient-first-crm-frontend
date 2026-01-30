@@ -34,6 +34,9 @@ interface Lead {
     account_type?: string;
     medical_notes?: string;
     banking_comments?: string;
+    // Draft Fields
+    initial_draft?: string;
+    future_draft?: string;
     // Health Questionnaire
     hospitalized_nursing_oxygen_cancer_assistance?: boolean;
     organ_transplant_terminal_condition?: boolean;

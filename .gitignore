@@ -19,6 +19,9 @@
 .DS_Store
 *.pem
 
+# zip files
+*.zip
+
 # debug
 npm-debug.log*
 yarn-debug.log*

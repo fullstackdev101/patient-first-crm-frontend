@@ -256,6 +256,19 @@ export default function ViewLeadPage() {
                                     </div >
                                 </div >
 
+                                {/* Draft Information */}
+                                <div className="card" style={{ marginBottom: '24px' }}>
+                                    <div className="card-header">
+                                        <h3 className="card-title">Draft Information</h3>
+                                    </div>
+                                    <div className="card-content" style={{ padding: '24px' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                            <ReadOnlyField label="Initial Draft" value={currentLead.initial_draft} multiline />
+                                            <ReadOnlyField label="Future Draft" value={currentLead.future_draft} multiline />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Health Questionnaire */}
                                 <div className="card" style={{ marginBottom: '24px' }}>
                                     <div className="card-header">

@@ -295,6 +295,50 @@ export default function LeadsPage() {
         }
     };
 
+    // Delete Lead Function (Super Admin only)
+    const handleDeleteLead = async (leadId: number, leadName: string) => {
+        // Confirmation alert
+        const confirmed = window.confirm(
+            `Are you sure you want to delete the lead for "${leadName}"?\n\nThis action cannot be undone.`
+        );
+
+        if (!confirmed) {
+            return; // User cancelled
+        }
+
+        try {
+            const response = await axios.delete(`/leads/${leadId}`);
+
+            if (response.data.success) {
+                alert('Lead deleted successfully!');
+                // Refresh the leads list
+                const params = new URLSearchParams({
+                    page: currentPage.toString(),
+                    limit: itemsPerPage.toString()
+                });
+
+                if (searchQuery) params.append('search', searchQuery);
+                if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
+                if (assignedUserFilter && assignedUserFilter !== 'All') params.append('assigned_to', assignedUserFilter);
+                if (startDate) params.append('start_date', startDate);
+                if (endDate) params.append('end_date', endDate);
+
+                const refreshResponse = await axios.get(`/leads?${params}`);
+
+                if (refreshResponse.data.success) {
+                    useLeadsStore.setState({
+                        leads: refreshResponse.data.data.leads,
+                        totalLeads: refreshResponse.data.data.total,
+                        isLoading: false
+                    });
+                }
+            }
+        } catch (error: any) {
+            console.error('Error deleting lead:', error);
+            alert(`Failed to delete lead: ${error.response?.data?.message || 'Unknown error'}`);
+        }
+    };
+
     return (
         <ProtectedRoute>
             <NewLeadNotification />
@@ -592,6 +636,38 @@ export default function LeadsPage() {
                                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                                 </svg>
                                                             </Link>
+                                                            {/* Delete Icon - Super Admin only */}
+                                                            {currentUser?.role_id === 1 && (
+                                                                <button
+                                                                    onClick={() => handleDeleteLead(lead.id, `${lead.first_name} ${lead.last_name}`)}
+                                                                    className="btn-icon"
+                                                                    title="Delete Lead"
+                                                                    style={{
+                                                                        textDecoration: 'none',
+                                                                        background: 'transparent',
+                                                                        border: 'none',
+                                                                        cursor: 'pointer',
+                                                                        padding: '8px',
+                                                                        borderRadius: '6px',
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        color: 'var(--danger-500)',
+                                                                        transition: 'all 0.2s'
+                                                                    }}
+                                                                    onMouseEnter={(e) => {
+                                                                        e.currentTarget.style.background = 'var(--danger-50)';
+                                                                    }}
+                                                                    onMouseLeave={(e) => {
+                                                                        e.currentTarget.style.background = 'transparent';
+                                                                    }}
+                                                                >
+                                                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                                    </svg>
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>

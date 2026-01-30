@@ -43,6 +43,9 @@ export default function EditLeadPage() {
         routing_number: '',
         account_type: 'checking',
         banking_comments: '',
+        // Draft Fields
+        initial_draft: '',
+        future_draft: '',
         // Health Questionnaire
         hospitalized_nursing_oxygen_cancer_assistance: 'no',
         organ_transplant_terminal_condition: 'no',
@@ -111,6 +114,9 @@ export default function EditLeadPage() {
                 routing_number: currentLead.routing_number ? maskRoutingNumber(currentLead.routing_number) : '',
                 account_type: (currentLead.account_type as 'checking' | 'saving' | 'direct_express') || 'checking',
                 banking_comments: currentLead.banking_comments || '',
+                // Draft Fields
+                initial_draft: currentLead.initial_draft || '',
+                future_draft: currentLead.future_draft || '',
                 // Health Questionnaire - convert boolean to yes/no
                 hospitalized_nursing_oxygen_cancer_assistance: currentLead.hospitalized_nursing_oxygen_cancer_assistance ? 'yes' : 'no',
                 organ_transplant_terminal_condition: currentLead.organ_transplant_terminal_condition ? 'yes' : 'no',
@@ -158,6 +164,9 @@ export default function EditLeadPage() {
                 routing_number: currentLead.routing_number ? maskRoutingNumber(currentLead.routing_number) : '',
                 account_type: (currentLead.account_type as 'checking' | 'saving' | 'direct_express') || 'checking',
                 banking_comments: currentLead.banking_comments || '',
+                // Draft Fields
+                initial_draft: currentLead.initial_draft || '',
+                future_draft: currentLead.future_draft || '',
                 hospitalized_nursing_oxygen_cancer_assistance: currentLead.hospitalized_nursing_oxygen_cancer_assistance ? 'yes' : 'no',
                 organ_transplant_terminal_condition: currentLead.organ_transplant_terminal_condition ? 'yes' : 'no',
                 aids_hiv_immune_deficiency: currentLead.aids_hiv_immune_deficiency ? 'yes' : 'no',
@@ -1003,6 +1012,25 @@ export default function EditLeadPage() {
                                                     <label className="form-label">Comments</label>
                                                     <textarea className="form-input" rows={3} placeholder="Enter any additional comments or special instructions regarding your banking information" value={formData.banking_comments} onChange={(e) => setFormData({ ...formData, banking_comments: e.target.value })}></textarea>
                                                     <p style={{ fontSize: '13px', color: 'var(--gray-600)', marginTop: '8px' }}>Please provide any additional information or special instructions related to your banking details.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Draft Fields */}
+                                    <div className="card" style={{ marginBottom: '24px' }}>
+                                        <div className="card-header">
+                                            <h3 className="card-title">Draft Information</h3>
+                                        </div>
+                                        <div className="card-content">
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                                                <div className="form-group">
+                                                    <label className="form-label">Initial Draft</label>
+                                                    <textarea className="form-input" rows={4} placeholder="Enter initial draft notes..." value={formData.initial_draft} onChange={(e) => setFormData({ ...formData, initial_draft: e.target.value })}></textarea>
+                                                </div>
+                                                <div className="form-group">
+                                                    <label className="form-label">Future Draft</label>
+                                                    <textarea className="form-input" rows={4} placeholder="Enter future draft notes..." value={formData.future_draft} onChange={(e) => setFormData({ ...formData, future_draft: e.target.value })}></textarea>
                                                 </div>
                                             </div>
                                         </div>

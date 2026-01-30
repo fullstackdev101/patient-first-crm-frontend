@@ -41,6 +41,9 @@ export default function AddLeadPage() {
         routing_number: '',
         account_type: 'checking',
         banking_comments: '',
+        // Draft Fields
+        initial_draft: '',
+        future_draft: '',
         // Health Questionnaire
         hospitalized_nursing_oxygen_cancer_assistance: 'no',
         organ_transplant_terminal_condition: 'no',
@@ -583,6 +586,25 @@ export default function AddLeadPage() {
                                                 <label className="form-label">Comments</label>
                                                 <textarea className="form-input" rows={3} placeholder="Enter any additional comments or special instructions regarding your banking information" value={formData.banking_comments} onChange={(e) => setFormData({ ...formData, banking_comments: e.target.value })}></textarea>
                                                 <p style={{ fontSize: '13px', color: 'var(--gray-600)', marginTop: '8px' }}>Please provide any additional information or special instructions related to your banking details.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Draft Fields */}
+                                <div className="card" style={{ marginBottom: '24px' }}>
+                                    <div className="card-header">
+                                        <h3 className="card-title">Draft Information</h3>
+                                    </div>
+                                    <div className="card-content">
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                                            <div className="form-group">
+                                                <label className="form-label">Initial Draft</label>
+                                                <textarea className="form-input" rows={4} placeholder="Enter initial draft notes..." value={formData.initial_draft} onChange={(e) => setFormData({ ...formData, initial_draft: e.target.value })}></textarea>
+                                            </div>
+                                            <div className="form-group">
+                                                <label className="form-label">Future Draft</label>
+                                                <textarea className="form-input" rows={4} placeholder="Enter future draft notes..." value={formData.future_draft} onChange={(e) => setFormData({ ...formData, future_draft: e.target.value })}></textarea>
                                             </div>
                                         </div>
                                     </div>
