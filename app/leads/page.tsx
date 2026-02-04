@@ -250,6 +250,7 @@ export default function LeadsPage() {
                     // Beneficiary & Plan Information
                     'Beneficiary Details': lead.beneficiary_details || 'N/A',
                     'Plan Details': lead.plan_details || 'N/A',
+                    'Quote Type': lead.quote_type || 'N/A',
 
                     // Health Questionnaire (Yes/No format)
                     'Hospitalized/Nursing/Oxygen/Cancer Assistance': lead.hospitalized_nursing_oxygen_cancer_assistance ? 'Yes' : 'No',
@@ -274,7 +275,11 @@ export default function LeadsPage() {
                     'Account Number': lead.account_number || 'N/A',
                     'Routing Number': lead.routing_number || 'N/A',
                     'Account Type': lead.account_type || 'N/A',
-                    'Banking Comments': lead.banking_comments || 'N/A'
+                    'Banking Comments': lead.banking_comments || 'N/A',
+
+                    // Draft Fields
+                    'Initial Draft': lead.initial_draft || 'N/A',
+                    'Future Draft': lead.future_draft || 'N/A'
                 }));
 
                 // Create workbook and worksheet

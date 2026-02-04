@@ -37,6 +37,7 @@ export default function EditLeadPage() {
         doctor_address: '',
         beneficiary_details: '',
         plan_details: '',
+        quote_type: '',
         bank_name: '',
         account_name: '',
         account_number: '',
@@ -108,6 +109,7 @@ export default function EditLeadPage() {
                 doctor_address: currentLead.doctor_address || '',
                 beneficiary_details: currentLead.beneficiary_details || '',
                 plan_details: currentLead.plan_details || '',
+                quote_type: currentLead.quote_type || '',
                 bank_name: currentLead.bank_name || '',
                 account_name: currentLead.account_name || '',
                 account_number: currentLead.account_number ? maskAccountNumber(currentLead.account_number) : '',
@@ -158,6 +160,7 @@ export default function EditLeadPage() {
                 doctor_address: currentLead.doctor_address || '',
                 beneficiary_details: currentLead.beneficiary_details || '',
                 plan_details: currentLead.plan_details || '',
+                quote_type: currentLead.quote_type || '',
                 bank_name: currentLead.bank_name || '',
                 account_name: currentLead.account_name || '',
                 account_number: currentLead.account_number ? maskAccountNumber(currentLead.account_number) : '',
@@ -715,6 +718,10 @@ export default function EditLeadPage() {
                                                 <label className="form-label">Plan Details *</label>
                                                 <textarea className="form-input" rows={4} placeholder="Enter your insurance plan details including plan name, policy number, coverage type, and any additional plan information" required value={formData.plan_details} onChange={(e) => setFormData({ ...formData, plan_details: e.target.value })}></textarea>
                                                 <p style={{ fontSize: '13px', color: 'var(--gray-600)', marginTop: '8px' }}>Please provide comprehensive information about your insurance plan including the plan name, policy number, type of coverage (e.g., HMO, PPO), deductible amount, and any other relevant plan details.</p>
+                                            </div>
+                                            <div className="form-group">
+                                                <label className="form-label">Why quoted.. Immediate/Graded/ROP</label>
+                                                <textarea className="form-input" rows={3} placeholder="Specify the quote type: Immediate Death Benefit, Graded Death Benefit, or Return of Premium (ROP)" value={formData.quote_type} onChange={(e) => setFormData({ ...formData, quote_type: e.target.value })}></textarea>
                                             </div>
                                         </div>
                                     </div>

@@ -27,6 +27,7 @@ interface Lead {
     doctor_address?: string;
     beneficiary_details?: string;
     plan_details?: string;
+    quote_type?: string;
     bank_name?: string;
     account_name?: string;
     account_number?: string;

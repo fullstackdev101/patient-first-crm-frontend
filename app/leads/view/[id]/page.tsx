@@ -244,6 +244,20 @@ export default function ViewLeadPage() {
                                 </div >
 
                                 {/* Plan & Beneficiary */}
+                                <div className="card" style={{ marginBottom: '24px' }}>
+                                    <div className="card-header">
+                                        <h3 className="card-title">Plan & Beneficiary Details</h3>
+                                    </div>
+                                    <div className="card-content" style={{ padding: '24px' }}>
+                                        <ReadOnlyField label="Beneficiary Details" value={currentLead.beneficiary_details} multiline />
+                                        <div style={{ marginTop: '20px' }}>
+                                            <ReadOnlyField label="Plan Details" value={currentLead.plan_details} multiline />
+                                        </div>
+                                        <div style={{ marginTop: '20px' }}>
+                                            <ReadOnlyField label="Why quoted.. Immediate/Graded/ROP" value={currentLead.quote_type} multiline />
+                                        </div>
+                                    </div>
+                                </div>
                                 < div className="card" style={{ marginBottom: '24px' }}>
                                     < div className="card-header">
                                         < h3 className="card-title">Plan & Beneficiary Details</h3>
