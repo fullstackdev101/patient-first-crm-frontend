@@ -7,11 +7,13 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import { useUsersStore } from '@/store';
+import { useTeamsStore } from '@/store/teamsStore';
 import axios from '@/lib/axios';
 
 export default function AddUserPage() {
     const router = useRouter();
     const { createUser, isLoading, error, clearError } = useUsersStore();
+    const { teams, fetchTeams } = useTeamsStore();
 
     const [roles, setRoles] = useState<any[]>([]);
     const [formData, setFormData] = useState({
@@ -21,9 +23,10 @@ export default function AddUserPage() {
         password: 'password123', // Default password as per requirement
         status: 'Active',
         role_id: 3, // Default to Agent
+        team_id: undefined as number | undefined,
     });
 
-    // Fetch roles on mount
+    // Fetch roles and teams on mount
     useEffect(() => {
         const fetchRoles = async () => {
             try {
@@ -36,6 +39,7 @@ export default function AddUserPage() {
             }
         };
         fetchRoles();
+        fetchTeams();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -159,6 +163,25 @@ export default function AddUserPage() {
                                                         </option>
                                                     ))}
                                                 </select>
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label className="form-label">Team</label>
+                                                <select
+                                                    className="form-select"
+                                                    value={formData.team_id || ''}
+                                                    onChange={(e) => setFormData({ ...formData, team_id: e.target.value ? parseInt(e.target.value) : undefined })}
+                                                >
+                                                    <option value="">No Team</option>
+                                                    {teams.map((team) => (
+                                                        <option key={team.id} value={team.id}>
+                                                            {team.team_name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <p style={{ fontSize: '13px', color: 'var(--gray-600)', marginTop: '8px' }}>
+                                                    Optional: Assign user to a team for categorization
+                                                </p>
                                             </div>
 
                                             <div className="form-group">

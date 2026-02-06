@@ -9,6 +9,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import NewLeadNotification from '../components/NewLeadNotification';
 import { useLeadsStore } from '@/store';
 import { useAuthStore } from '@/store';
+import { useTeamsStore } from '@/store/teamsStore';
 import axios from '@/lib/axios';
 import * as XLSX from 'xlsx';
 
@@ -44,18 +45,22 @@ export default function LeadsPage() {
     const [assignedUsers, setAssignedUsers] = useState<any[]>([]);
     const [assignedUserFilter, setAssignedUserFilter] = useState('');
 
+    // State for teams filter
+    const { teams, fetchTeams } = useTeamsStore();
+    const [teamFilter, setTeamFilter] = useState('');
+
     // State for date filters
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
     // Local pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, statusFilter, assignedUserFilter, startDate, endDate]);
+    }, [searchQuery, statusFilter, assignedUserFilter, teamFilter, startDate, endDate]);
 
     // Fetch statuses from API
     useEffect(() => {
@@ -94,6 +99,11 @@ export default function LeadsPage() {
         fetchAssignedUsers();
     }, []);
 
+    // Fetch teams from API
+    useEffect(() => {
+        fetchTeams();
+    }, []);
+
 
 
     // Refetch when filters change
@@ -112,6 +122,7 @@ export default function LeadsPage() {
                 if (searchQuery) params.append('search', searchQuery);
                 if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
                 if (assignedUserFilter && assignedUserFilter !== 'All') params.append('assigned_to', assignedUserFilter);
+                if (teamFilter && teamFilter !== 'All') params.append('team_id', teamFilter);
                 if (startDate) {
                     params.append('start_date', startDate);
                     console.log('📅 Frontend sending start_date:', startDate);
@@ -125,6 +136,7 @@ export default function LeadsPage() {
                     searchQuery,
                     statusFilter,
                     assignedUserFilter,
+                    teamFilter,
                     startDate,
                     endDate,
                     currentPage
@@ -150,7 +162,7 @@ export default function LeadsPage() {
         };
 
         fetchWithFilters();
-    }, [searchQuery, statusFilter, assignedUserFilter, startDate, endDate, currentPage, itemsPerPage]);
+    }, [searchQuery, statusFilter, assignedUserFilter, teamFilter, startDate, endDate, currentPage, itemsPerPage]);
 
     // Calculate pagination
     const totalPages = Math.ceil(totalLeads / itemsPerPage);
@@ -202,6 +214,7 @@ export default function LeadsPage() {
             if (searchQuery) params.append('search', searchQuery);
             if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
             if (assignedUserFilter && assignedUserFilter !== 'All') params.append('assigned_to', assignedUserFilter);
+            if (teamFilter && teamFilter !== 'All') params.append('team_id', teamFilter);
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
 
@@ -325,6 +338,7 @@ export default function LeadsPage() {
                 if (searchQuery) params.append('search', searchQuery);
                 if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
                 if (assignedUserFilter && assignedUserFilter !== 'All') params.append('assigned_to', assignedUserFilter);
+                if (teamFilter && teamFilter !== 'All') params.append('team_id', teamFilter);
                 if (startDate) params.append('start_date', startDate);
                 if (endDate) params.append('end_date', endDate);
 
@@ -401,8 +415,8 @@ export default function LeadsPage() {
                         {/* Filter Card */}
                         <div className="card" style={{ marginBottom: '24px' }}>
                             <div className="card-content" style={{ padding: '16px 24px' }}>
-                                {/* First Row: Search, Status, Assigned User */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                {/* First Row: Search, Status, Assigned User, Team */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                                     <div className="search-box">
                                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                             style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)' }}>
@@ -444,6 +458,18 @@ export default function LeadsPage() {
                                         {assignedUsers.map((user) => (
                                             <option key={user.id} value={user.id}>
                                                 {user.name} ({user.role})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        style={{ padding: '10px 12px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                                        value={teamFilter || 'All'}
+                                        onChange={(e) => setTeamFilter(e.target.value)}
+                                    >
+                                        <option value="All">All Teams</option>
+                                        {teams.map((team) => (
+                                            <option key={team.id} value={team.id}>
+                                                {team.team_name}
                                             </option>
                                         ))}
                                     </select>
@@ -711,11 +737,12 @@ export default function LeadsPage() {
                                             >
                                                 <option value={5}>5</option>
                                                 <option value={10}>10</option>
+                                                <option value={15}>15</option>
                                             </select>
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                                         {/* Previous Button */}
                                         <button
                                             onClick={() => handlePageChange(currentPage - 1)}
@@ -734,26 +761,121 @@ export default function LeadsPage() {
                                             Previous
                                         </button>
 
-                                        {/* Page Numbers */}
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                            <button
-                                                key={page}
-                                                onClick={() => handlePageChange(page)}
-                                                style={{
-                                                    padding: '8px 12px',
-                                                    border: '1px solid var(--gray-300)',
-                                                    borderRadius: '6px',
-                                                    background: currentPage === page ? 'var(--primary-500)' : 'white',
-                                                    color: currentPage === page ? 'white' : 'var(--gray-700)',
-                                                    cursor: 'pointer',
-                                                    fontSize: '14px',
-                                                    fontWeight: currentPage === page ? '600' : '500',
-                                                    minWidth: '40px',
-                                                }}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
+                                        {/* Smart Page Numbers */}
+                                        {(() => {
+                                            const pageButtons = [];
+                                            const maxVisiblePages = 7; // Show max 7 page buttons
+
+                                            if (totalPages <= maxVisiblePages) {
+                                                // Show all pages if total is small
+                                                for (let i = 1; i <= totalPages; i++) {
+                                                    pageButtons.push(
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => handlePageChange(i)}
+                                                            style={{
+                                                                padding: '8px 12px',
+                                                                border: '1px solid var(--gray-300)',
+                                                                borderRadius: '6px',
+                                                                background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                color: currentPage === i ? 'white' : 'var(--gray-700)',
+                                                                cursor: 'pointer',
+                                                                fontSize: '14px',
+                                                                fontWeight: currentPage === i ? '600' : '500',
+                                                                minWidth: '40px',
+                                                            }}
+                                                        >
+                                                            {i}
+                                                        </button>
+                                                    );
+                                                }
+                                            } else {
+                                                // Smart pagination with ellipsis
+                                                // Always show first page
+                                                pageButtons.push(
+                                                    <button
+                                                        key={1}
+                                                        onClick={() => handlePageChange(1)}
+                                                        style={{
+                                                            padding: '8px 12px',
+                                                            border: '1px solid var(--gray-300)',
+                                                            borderRadius: '6px',
+                                                            background: currentPage === 1 ? 'var(--primary-500)' : 'white',
+                                                            color: currentPage === 1 ? 'white' : 'var(--gray-700)',
+                                                            cursor: 'pointer',
+                                                            fontSize: '14px',
+                                                            fontWeight: currentPage === 1 ? '600' : '500',
+                                                            minWidth: '40px',
+                                                        }}
+                                                    >
+                                                        1
+                                                    </button>
+                                                );
+
+                                                // Show ellipsis if current page is far from start
+                                                if (currentPage > 3) {
+                                                    pageButtons.push(
+                                                        <span key="ellipsis-start" style={{ padding: '8px 4px', color: 'var(--gray-500)' }}>...</span>
+                                                    );
+                                                }
+
+                                                // Show pages around current page
+                                                const startPage = Math.max(2, currentPage - 1);
+                                                const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+                                                for (let i = startPage; i <= endPage; i++) {
+                                                    pageButtons.push(
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => handlePageChange(i)}
+                                                            style={{
+                                                                padding: '8px 12px',
+                                                                border: '1px solid var(--gray-300)',
+                                                                borderRadius: '6px',
+                                                                background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                color: currentPage === i ? 'white' : 'var(--gray-700)',
+                                                                cursor: 'pointer',
+                                                                fontSize: '14px',
+                                                                fontWeight: currentPage === i ? '600' : '500',
+                                                                minWidth: '40px',
+                                                            }}
+                                                        >
+                                                            {i}
+                                                        </button>
+                                                    );
+                                                }
+
+                                                // Show ellipsis if current page is far from end
+                                                if (currentPage < totalPages - 2) {
+                                                    pageButtons.push(
+                                                        <span key="ellipsis-end" style={{ padding: '8px 4px', color: 'var(--gray-500)' }}>...</span>
+                                                    );
+                                                }
+
+                                                // Always show last page
+                                                pageButtons.push(
+                                                    <button
+                                                        key={totalPages}
+                                                        onClick={() => handlePageChange(totalPages)}
+                                                        style={{
+                                                            padding: '8px 12px',
+                                                            border: '1px solid var(--gray-300)',
+                                                            borderRadius: '6px',
+                                                            background: currentPage === totalPages ? 'var(--primary-500)' : 'white',
+                                                            color: currentPage === totalPages ? 'white' : 'var(--gray-700)',
+                                                            cursor: 'pointer',
+                                                            fontSize: '14px',
+                                                            fontWeight: currentPage === totalPages ? '600' : '500',
+                                                            minWidth: '40px',
+                                                        }}
+                                                    >
+                                                        {totalPages}
+                                                    </button>
+                                                );
+                                            }
+
+                                            return pageButtons;
+                                        })()}
 
                                         {/* Next Button */}
                                         <button

@@ -8,6 +8,7 @@ import Topbar from '../components/Topbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import axios from '@/lib/axios';
 import { useAuthStore } from '@/store';
+import { useTeamsStore } from '@/store/teamsStore';
 
 export default function UsersPage() {
     const router = useRouter();
@@ -29,12 +30,16 @@ export default function UsersPage() {
     // Search and filter states
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
+    const [selectedTeam, setSelectedTeam] = useState('');
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
-    const [limit] = useState(5);
+    const [limit] = useState(10); // Changed from 5 to 10
+
+    // Fetch teams
+    const { teams, fetchTeams } = useTeamsStore();
 
     // Fetch users with search and pagination
     const fetchUsers = async () => {
@@ -51,6 +56,10 @@ export default function UsersPage() {
 
             if (selectedRole) {
                 params.append('role_id', selectedRole);
+            }
+
+            if (selectedTeam) {
+                params.append('team_id', selectedTeam);
             }
 
             const response = await axios.get(`/users?${params.toString()}`);
@@ -103,10 +112,15 @@ export default function UsersPage() {
         fetchRoles();
     }, [currentUser]);
 
+    // Fetch teams
+    useEffect(() => {
+        fetchTeams();
+    }, []);
+
     // Fetch users when page, search, or filter changes
     useEffect(() => {
         fetchUsers();
-    }, [currentPage, searchTerm, selectedRole]);
+    }, [currentPage, searchTerm, selectedRole, selectedTeam]);
 
     // handleDelete function removed - user deletion disabled
 
@@ -124,6 +138,7 @@ export default function UsersPage() {
     const handleClearFilters = () => {
         setSearchTerm('');
         setSelectedRole('');
+        setSelectedTeam('');
         setCurrentPage(1);
     };
 
@@ -211,6 +226,33 @@ export default function UsersPage() {
                                     </select>
                                 </div>
 
+                                {/* Team Filter */}
+                                <div style={{ minWidth: '200px' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--gray-700)' }}>
+                                        Filter by Team
+                                    </label>
+                                    <select
+                                        value={selectedTeam}
+                                        onChange={(e) => {
+                                            setSelectedTeam(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            border: '1px solid var(--gray-300)',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            background: 'white'
+                                        }}
+                                    >
+                                        <option value="">All Teams</option>
+                                        {teams.map(team => (
+                                            <option key={team.id} value={team.id}>{team.team_name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
                                 {/* Action Buttons */}
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <button
@@ -228,7 +270,7 @@ export default function UsersPage() {
                                     >
                                         Search
                                     </button>
-                                    {(searchTerm || selectedRole) && (
+                                    {(searchTerm || selectedRole || selectedTeam) && (
                                         <button
                                             type="button"
                                             onClick={handleClearFilters}
@@ -415,7 +457,7 @@ export default function UsersPage() {
                                                 <div style={{ fontSize: '14px', color: 'var(--gray-600)' }}>
                                                     Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, total)} of {total} users
                                                 </div>
-                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                                                     {/* Previous Button */}
                                                     <button
                                                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -434,26 +476,121 @@ export default function UsersPage() {
                                                         Previous
                                                     </button>
 
-                                                    {/* Page Numbers */}
-                                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                                        <button
-                                                            key={page}
-                                                            onClick={() => setCurrentPage(page)}
-                                                            style={{
-                                                                padding: '8px 12px',
-                                                                border: '1px solid var(--gray-300)',
-                                                                borderRadius: '6px',
-                                                                background: currentPage === page ? 'var(--primary-500)' : 'white',
-                                                                color: currentPage === page ? 'white' : 'var(--gray-700)',
-                                                                cursor: 'pointer',
-                                                                fontSize: '14px',
-                                                                fontWeight: currentPage === page ? '600' : '500',
-                                                                minWidth: '40px',
-                                                            }}
-                                                        >
-                                                            {page}
-                                                        </button>
-                                                    ))}
+                                                    {/* Smart Page Numbers */}
+                                                    {(() => {
+                                                        const pageButtons = [];
+                                                        const maxVisiblePages = 7; // Show max 7 page buttons
+
+                                                        if (totalPages <= maxVisiblePages) {
+                                                            // Show all pages if total is small
+                                                            for (let i = 1; i <= totalPages; i++) {
+                                                                pageButtons.push(
+                                                                    <button
+                                                                        key={i}
+                                                                        onClick={() => setCurrentPage(i)}
+                                                                        style={{
+                                                                            padding: '8px 12px',
+                                                                            border: '1px solid var(--gray-300)',
+                                                                            borderRadius: '6px',
+                                                                            background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                            color: currentPage === i ? 'white' : 'var(--gray-700)',
+                                                                            cursor: 'pointer',
+                                                                            fontSize: '14px',
+                                                                            fontWeight: currentPage === i ? '600' : '500',
+                                                                            minWidth: '40px',
+                                                                        }}
+                                                                    >
+                                                                        {i}
+                                                                    </button>
+                                                                );
+                                                            }
+                                                        } else {
+                                                            // Smart pagination with ellipsis
+                                                            // Always show first page
+                                                            pageButtons.push(
+                                                                <button
+                                                                    key={1}
+                                                                    onClick={() => setCurrentPage(1)}
+                                                                    style={{
+                                                                        padding: '8px 12px',
+                                                                        border: '1px solid var(--gray-300)',
+                                                                        borderRadius: '6px',
+                                                                        background: currentPage === 1 ? 'var(--primary-500)' : 'white',
+                                                                        color: currentPage === 1 ? 'white' : 'var(--gray-700)',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '14px',
+                                                                        fontWeight: currentPage === 1 ? '600' : '500',
+                                                                        minWidth: '40px',
+                                                                    }}
+                                                                >
+                                                                    1
+                                                                </button>
+                                                            );
+
+                                                            // Show ellipsis if current page is far from start
+                                                            if (currentPage > 3) {
+                                                                pageButtons.push(
+                                                                    <span key="ellipsis-start" style={{ padding: '8px 4px', color: 'var(--gray-500)' }}>...</span>
+                                                                );
+                                                            }
+
+                                                            // Show pages around current page
+                                                            const startPage = Math.max(2, currentPage - 1);
+                                                            const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+                                                            for (let i = startPage; i <= endPage; i++) {
+                                                                pageButtons.push(
+                                                                    <button
+                                                                        key={i}
+                                                                        onClick={() => setCurrentPage(i)}
+                                                                        style={{
+                                                                            padding: '8px 12px',
+                                                                            border: '1px solid var(--gray-300)',
+                                                                            borderRadius: '6px',
+                                                                            background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                            color: currentPage === i ? 'white' : 'var(--gray-700)',
+                                                                            cursor: 'pointer',
+                                                                            fontSize: '14px',
+                                                                            fontWeight: currentPage === i ? '600' : '500',
+                                                                            minWidth: '40px',
+                                                                        }}
+                                                                    >
+                                                                        {i}
+                                                                    </button>
+                                                                );
+                                                            }
+
+                                                            // Show ellipsis if current page is far from end
+                                                            if (currentPage < totalPages - 2) {
+                                                                pageButtons.push(
+                                                                    <span key="ellipsis-end" style={{ padding: '8px 4px', color: 'var(--gray-500)' }}>...</span>
+                                                                );
+                                                            }
+
+                                                            // Always show last page
+                                                            pageButtons.push(
+                                                                <button
+                                                                    key={totalPages}
+                                                                    onClick={() => setCurrentPage(totalPages)}
+                                                                    style={{
+                                                                        padding: '8px 12px',
+                                                                        border: '1px solid var(--gray-300)',
+                                                                        borderRadius: '6px',
+                                                                        background: currentPage === totalPages ? 'var(--primary-500)' : 'white',
+                                                                        color: currentPage === totalPages ? 'white' : 'var(--gray-700)',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '14px',
+                                                                        fontWeight: currentPage === totalPages ? '600' : '500',
+                                                                        minWidth: '40px',
+                                                                    }}
+                                                                >
+                                                                    {totalPages}
+                                                                </button>
+                                                            );
+                                                        }
+
+                                                        return pageButtons;
+                                                    })()}
 
                                                     {/* Next Button */}
                                                     <button

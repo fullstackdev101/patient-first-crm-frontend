@@ -7,6 +7,7 @@ interface User {
     username: string;
     email: string;
     role_id: number;
+    team_id?: number;
     status: string;
     assigned_ip?: string;
 }
