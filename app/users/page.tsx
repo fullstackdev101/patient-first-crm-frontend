@@ -320,6 +320,7 @@ export default function UsersPage() {
                                             <thead>
                                                 <tr>
                                                     <th>Name</th>
+                                                    <th>Team</th>
                                                     <th>Username</th>
                                                     <th>Email</th>
                                                     <th>Role</th>
@@ -331,7 +332,7 @@ export default function UsersPage() {
                                             <tbody>
                                                 {users.length === 0 ? (
                                                     <tr>
-                                                        <td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: 'var(--gray-600)' }}>
+                                                        <td colSpan={8} style={{ textAlign: 'center', padding: '48px', color: 'var(--gray-600)' }}>
                                                             No users found
                                                         </td>
                                                     </tr>
@@ -342,6 +343,11 @@ export default function UsersPage() {
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                                     <div className="user-avatar">{getUserInitials(user.name)}</div>
                                                                     <div className="text-bold">{user.name}</div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div style={{ fontSize: '13px', color: 'var(--gray-600)' }}>
+                                                                    {user.team_name || <span style={{ fontStyle: 'italic', color: 'var(--gray-400)' }}>No Team</span>}
                                                                 </div>
                                                             </td>
                                                             <td className="text-muted">{user.username}</td>

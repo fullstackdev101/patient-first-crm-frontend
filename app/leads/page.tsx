@@ -68,7 +68,11 @@ export default function LeadsPage() {
             try {
                 const response = await axios.get('/statuses');
                 if (response.data.success) {
-                    setStatuses(response.data.data);
+                    // Filter to only show statuses with IDs 5, 6, or 7
+                    const filteredStatuses = response.data.data.filter(
+                        (status: any) => [5, 6, 7].includes(status.id)
+                    );
+                    setStatuses(filteredStatuses);
                     // Find License Agent status ID
                     const licenseAgentStatus = response.data.data.find(
                         (status: any) => status.status_name === 'License Agent'
@@ -84,11 +88,11 @@ export default function LeadsPage() {
         fetchStatuses();
     }, []);
 
-    // Fetch assigned users from API
+    // Fetch all users from API
     useEffect(() => {
-        const fetchAssignedUsers = async () => {
+        const fetchAllUsers = async () => {
             try {
-                const response = await axios.get('/users');
+                const response = await axios.get('/users/all');
                 if (response.data.success) {
                     setAssignedUsers(response.data.data);
                 }
@@ -96,7 +100,7 @@ export default function LeadsPage() {
                 console.error('Error fetching users:', error);
             }
         };
-        fetchAssignedUsers();
+        fetchAllUsers();
     }, []);
 
     // Fetch teams from API
@@ -121,7 +125,7 @@ export default function LeadsPage() {
 
                 if (searchQuery) params.append('search', searchQuery);
                 if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
-                if (assignedUserFilter && assignedUserFilter !== 'All') params.append('assigned_to', assignedUserFilter);
+                if (assignedUserFilter && assignedUserFilter !== 'All') params.append('created_by', assignedUserFilter);
                 if (teamFilter && teamFilter !== 'All') params.append('team_id', teamFilter);
                 if (startDate) {
                     params.append('start_date', startDate);
@@ -213,7 +217,7 @@ export default function LeadsPage() {
 
             if (searchQuery) params.append('search', searchQuery);
             if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
-            if (assignedUserFilter && assignedUserFilter !== 'All') params.append('assigned_to', assignedUserFilter);
+            if (assignedUserFilter && assignedUserFilter !== 'All') params.append('created_by', assignedUserFilter);
             if (teamFilter && teamFilter !== 'All') params.append('team_id', teamFilter);
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
@@ -232,6 +236,7 @@ export default function LeadsPage() {
                     // Basic Information
                     'ID': lead.id,
                     'Created By': lead.created_by_name || 'Unknown',
+                    'Team': lead.team_name || 'No Team',
                     'Created Date': lead.created_at ? new Date(lead.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A',
                     'Updated Date': lead.updated_at ? new Date(lead.updated_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A',
                     'Status': lead.status,
@@ -442,7 +447,7 @@ export default function LeadsPage() {
                                         value={statusFilter || 'All'}
                                         onChange={(e) => setStatusFilter(e.target.value)}
                                     >
-                                        <option value="All">All Statuses</option>
+                                        <option value="All">Select Status</option>
                                         {statuses.map((status) => (
                                             <option key={status.id} value={status.id}>
                                                 {status.status_name}
@@ -454,7 +459,7 @@ export default function LeadsPage() {
                                         value={assignedUserFilter || 'All'}
                                         onChange={(e) => setAssignedUserFilter(e.target.value)}
                                     >
-                                        <option value="All">All Assigned Users</option>
+                                        <option value="All">All Users</option>
                                         {assignedUsers.map((user) => (
                                             <option key={user.id} value={user.id}>
                                                 {user.name} ({user.role})
@@ -598,10 +603,11 @@ export default function LeadsPage() {
                                             <tr>
                                                 <th>ID</th>
                                                 <th>Created By</th>
+                                                <th>Team</th>
                                                 <th>Patient Name</th>
                                                 <th>Contact</th>
                                                 <th>Status</th>
-                                                <th>Assigned Agent</th>
+
                                                 <th>Date</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -615,6 +621,11 @@ export default function LeadsPage() {
                                                     <td>
                                                         <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--gray-700)' }}>
                                                             {lead.created_by_name || 'Unknown'}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ fontSize: '13px', color: 'var(--gray-600)' }}>
+                                                            {lead.team_name || <span style={{ fontStyle: 'italic', color: 'var(--gray-400)' }}>No Team</span>}
                                                         </div>
                                                     </td>
                                                     <td>
@@ -637,17 +648,7 @@ export default function LeadsPage() {
                                                             {lead.status}
                                                         </span>
                                                     </td>
-                                                    <td>
-                                                        {lead.assigned_to ? (
-                                                            <span style={{ fontWeight: '500', fontSize: '13px', color: '#111827' }}>
-                                                                {lead.assigned_to} ({lead.assigned_to_role || 'Agent'})
-                                                            </span>
-                                                        ) : (
-                                                            <span style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic' }}>
-                                                                Unassigned
-                                                            </span>
-                                                        )}
-                                                    </td>
+
                                                     <td className="text-muted">{lead.created_at ? new Date(lead.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A'}</td>
                                                     <td>
                                                         <div style={{ display: 'flex', gap: '8px' }}>
