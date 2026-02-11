@@ -629,7 +629,7 @@ export default function LeadsPage() {
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <div className="text-bold">{lead.first_name} {lead.last_name}</div>
+                                                        <div className="text-bold">{lead.first_name} {lead.middle_initial ? lead.middle_initial + ' ' : ''}{lead.last_name}</div>
                                                         <div className="text-sm text-muted">
                                                             DOB: {lead.date_of_birth ? lead.date_of_birth : 'N/A'}
                                                         </div>
@@ -671,7 +671,7 @@ export default function LeadsPage() {
                                                             {/* Delete Icon - Super Admin only */}
                                                             {currentUser?.role_id === 1 && (
                                                                 <button
-                                                                    onClick={() => handleDeleteLead(lead.id, `${lead.first_name} ${lead.last_name}`)}
+                                                                    onClick={() => handleDeleteLead(lead.id, `${lead.first_name}${lead.middle_initial ? ' ' + lead.middle_initial : ''} ${lead.last_name}`)}
                                                                     className="btn-icon"
                                                                     title="Delete Lead"
                                                                     style={{
