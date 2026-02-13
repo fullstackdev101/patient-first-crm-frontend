@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Sidebar from '../components/Sidebar';
-import Topbar from '../components/Topbar';
-import ProtectedRoute from '../components/ProtectedRoute';
+import Sidebar from '../../components/Sidebar';
+import Topbar from '../../components/Topbar';
+import ProtectedRoute from '../../components/ProtectedRoute';
 import { useLeadsStore } from '@/store';
 import axios from '@/lib/axios';
 
@@ -158,7 +158,7 @@ export default function AgentLeadsPage() {
                                         </svg>
                                         <input
                                             type="text"
-                                            placeholder="Search by name, email, or ID..."
+                                            placeholder="Search by Patient name, email, phone, or ID..."
                                             style={{ width: '100%', padding: '10px 12px 10px 40px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px' }}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}

@@ -129,7 +129,7 @@ export default function AddLeadPage() {
             // Role-based redirect
             const userRoleId = user?.role_id;
             if (userRoleId === 3 || userRoleId === 4) {
-                router.push('/leads-agent');
+                router.push('/leads/agent-leads');
             } else {
                 router.push('/leads');
             }
@@ -140,7 +140,7 @@ export default function AddLeadPage() {
 
     // Determine leads list path based on user role
     const userRoleId = user?.role_id;
-    const leadsListPath = (userRoleId === 3 || userRoleId === 4) ? '/leads-agent' : '/leads';
+    const leadsListPath = (userRoleId === 3 || userRoleId === 4) ? '/leads/agent-leads' : '/leads';
 
     return (
         <ProtectedRoute>

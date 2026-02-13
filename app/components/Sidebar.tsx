@@ -7,6 +7,8 @@ import { useEffect, useState } from 'react';
 export default function Sidebar() {
     const pathname = usePathname();
     const [userRoleId, setUserRoleId] = useState<number | null>(null);
+    const [isReportsOpen, setIsReportsOpen] = useState(false);
+    const [isLeadsOpen, setIsLeadsOpen] = useState(false);
 
     useEffect(() => {
         // Get user role_id from localStorage (Zustand persist stores in 'auth-storage')
@@ -25,6 +27,20 @@ export default function Sidebar() {
             console.log('⚠️ Sidebar - No auth-storage found in localStorage');
         }
     }, []);
+
+    // Auto-open Reports submenu if on a reports page
+    useEffect(() => {
+        if (pathname.startsWith('/reports')) {
+            setIsReportsOpen(true);
+        }
+    }, [pathname]);
+
+    // Auto-open Leads submenu if on a leads page
+    useEffect(() => {
+        if (pathname.startsWith('/leads/')) {
+            setIsLeadsOpen(true);
+        }
+    }, [pathname]);
 
     const isActive = (path: string) => {
         if (path === '/dashboard') return pathname === '/dashboard';
@@ -74,17 +90,71 @@ export default function Sidebar() {
                 )}
 
                 {canAccessModule('leads') && (
-                    <Link
-                        href={userRoleId === 3 ? '/leads-agent' : '/leads'}
-                        className={`nav-item ${isActive('/leads') || isActive('/leads-agent') ? 'active' : ''}`}
-                    >
-                        <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
-                        <span>Leads</span>
-                    </Link>
+                    <div className="nav-item-group">
+                        <button
+                            className={`nav-item nav-item-toggle ${pathname.startsWith('/leads') ? 'active' : ''}`}
+                            onClick={() => setIsLeadsOpen(!isLeadsOpen)}
+                        >
+                            <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                            <span>Leads</span>
+                            <svg
+                                className={`nav-chevron ${isLeadsOpen ? 'open' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        {isLeadsOpen && (
+                            <div className="submenu">
+                                {/* All Leads - Super Admin only (role_id: 1) */}
+                                {userRoleId === 1 && (
+                                    <Link
+                                        href="/leads"
+                                        className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
+                                    >
+                                        <span>All Leads</span>
+                                    </Link>
+                                )}
+
+                                {/* Agent Leads - Agent only (role_id: 3) */}
+                                {userRoleId === 3 && (
+                                    <Link
+                                        href="/leads/agent-leads"
+                                        className={`submenu-item ${pathname === '/leads/agent-leads' ? 'active' : ''}`}
+                                    >
+                                        <span>Agent Leads</span>
+                                    </Link>
+                                )}
+
+                                {/* QA Leads - QA Reviewer (5) and QA Manager (6) */}
+                                {(userRoleId === 5 || userRoleId === 6) && (
+                                    <Link
+                                        href="/leads"
+                                        className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
+                                    >
+                                        <span>QA Leads</span>
+                                    </Link>
+                                )}
+
+                                {/* LA Leads - License Agent only (role_id: 4) */}
+                                {userRoleId === 4 && (
+                                    <Link
+                                        href="/leads"
+                                        className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
+                                    >
+                                        <span>LA Leads</span>
+                                    </Link>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {canAccessModule('users') && (
@@ -108,6 +178,54 @@ export default function Sidebar() {
                         </svg>
                         <span>Teams</span>
                     </Link>
+                )}
+
+                {/* Reports - Super Admin (1), Admin (2), and QA Manager (6) only */}
+                {(userRoleId === 1 || userRoleId === 2 || userRoleId === 6) && (
+                    <div className="nav-item-group">
+                        <button
+                            className={`nav-item nav-item-toggle ${pathname.startsWith('/reports') ? 'active' : ''}`}
+                            onClick={() => setIsReportsOpen(!isReportsOpen)}
+                        >
+                            <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                </path>
+                            </svg>
+                            <span>Reports</span>
+                            <svg
+                                className={`nav-chevron ${isReportsOpen ? 'open' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+
+                        {isReportsOpen && (
+                            <div className="submenu">
+                                <Link
+                                    href="/reports/daily"
+                                    className={`submenu-item ${pathname === '/reports/daily' ? 'active' : ''}`}
+                                >
+                                    <span>Daily Report</span>
+                                </Link>
+                                <Link
+                                    href="/reports/agent-wise"
+                                    className={`submenu-item ${pathname === '/reports/agent-wise' ? 'active' : ''}`}
+                                >
+                                    <span>Agent-wise Report</span>
+                                </Link>
+                                <Link
+                                    href="/reports/team-wise"
+                                    className={`submenu-item ${pathname === '/reports/team-wise' ? 'active' : ''}`}
+                                >
+                                    <span>Team-wise Report</span>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {canAccessModule('ip-access') && (

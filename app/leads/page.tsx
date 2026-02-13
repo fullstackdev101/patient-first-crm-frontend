@@ -25,14 +25,6 @@ export default function LeadsPage() {
         totalLeads
     } = useLeadsStore();
 
-    // Access control: Redirect only Agent users to /leads-agent
-    useEffect(() => {
-        const userRoleId = currentUser?.role_id;
-        if (userRoleId === 3) {
-            router.replace('/leads-agent');
-        }
-    }, [currentUser, router]);
-
     // Local state for filters
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
@@ -40,6 +32,23 @@ export default function LeadsPage() {
     // State for statuses from database
     const [statuses, setStatuses] = useState<any[]>([]);
     const [licenseAgentStatusId, setLicenseAgentStatusId] = useState<string | null>(null);
+
+    // Role-based automatic status filtering
+    useEffect(() => {
+        const userRoleId = currentUser?.role_id;
+
+        // QA Reviewer (5) or QA Manager (6) - auto-filter to QA Review + New statuses
+        if (userRoleId === 5 || userRoleId === 6) {
+            // Will be set after statuses are fetched
+        }
+
+        // License Agent (4) - auto-filter to License Agent status
+        if (userRoleId === 4 && licenseAgentStatusId) {
+            setStatusFilter(licenseAgentStatusId);
+        }
+    }, [currentUser, licenseAgentStatusId]);
+
+
 
     // State for assigned users filter
     const [assignedUsers, setAssignedUsers] = useState<any[]>([]);
@@ -62,23 +71,50 @@ export default function LeadsPage() {
         setCurrentPage(1);
     }, [searchQuery, statusFilter, assignedUserFilter, teamFilter, startDate, endDate]);
 
-    // Fetch statuses from API
+    // Fetch statuses from API and apply role-based filtering
     useEffect(() => {
         const fetchStatuses = async () => {
             try {
                 const response = await axios.get('/statuses');
                 if (response.data.success) {
-                    // Filter to only show statuses with IDs 5, 6, or 7
-                    const filteredStatuses = response.data.data.filter(
-                        (status: any) => [5, 6, 7].includes(status.id)
-                    );
-                    setStatuses(filteredStatuses);
-                    // Find License Agent status ID
-                    const licenseAgentStatus = response.data.data.find(
-                        (status: any) => status.status_name === 'License Agent'
-                    );
+                    const allStatuses = response.data.data;
+                    const userRoleId = currentUser?.role_id;
+
+                    // Find specific status IDs
+                    const qaReviewStatus = allStatuses.find((s: any) => s.status_name === 'QA Review');
+                    const newStatus = allStatuses.find((s: any) => s.status_name === 'New');
+                    const licenseAgentStatus = allStatuses.find((s: any) => s.status_name === 'License Agent');
+
+                    // Store License Agent status ID for LA role filtering
                     if (licenseAgentStatus) {
                         setLicenseAgentStatusId(licenseAgentStatus.id.toString());
+                    }
+
+                    // Role-based status filtering
+                    if (userRoleId === 5 || userRoleId === 6) {
+                        // QA roles: show only QA Review and New statuses
+                        const qaStatuses = allStatuses.filter(
+                            (status: any) => status.status_name === 'QA Review' || status.status_name === 'New'
+                        );
+                        setStatuses(qaStatuses);
+                        // Set to "All" to show both New and QA Review leads
+                        setStatusFilter('All');
+                    } else if (userRoleId === 4) {
+                        // LA role: show only License Agent status
+                        const laStatuses = allStatuses.filter(
+                            (status: any) => status.status_name === 'License Agent'
+                        );
+                        setStatuses(laStatuses);
+                        // Auto-select License Agent status
+                        if (licenseAgentStatus) {
+                            setStatusFilter(licenseAgentStatus.id.toString());
+                        }
+                    } else {
+                        // Super Admin and others: show statuses with IDs 5, 6, or 7
+                        const filteredStatuses = allStatuses.filter(
+                            (status: any) => [5, 6, 7].includes(status.id)
+                        );
+                        setStatuses(filteredStatuses);
                     }
                 }
             } catch (error) {
@@ -86,7 +122,7 @@ export default function LeadsPage() {
             }
         };
         fetchStatuses();
-    }, []);
+    }, [currentUser]);
 
     // Fetch all users from API
     useEffect(() => {
@@ -430,7 +466,7 @@ export default function LeadsPage() {
                                         </svg>
                                         <input
                                             type="text"
-                                            placeholder="Search by name, email, phone, or ID..."
+                                            placeholder="Search by Patient name, email, phone, or ID..."
                                             style={{ width: '100%', padding: '10px 12px 10px 40px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px' }}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
