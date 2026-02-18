@@ -114,7 +114,7 @@ export default function Sidebar() {
                         {isLeadsOpen && (
                             <div className="submenu">
                                 {/* All Leads - Super Admin only (role_id: 1) */}
-                                {userRoleId === 1 && (
+                                {(userRoleId === 1 || userRoleId === 6) && (
                                     <Link
                                         href="/leads"
                                         className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
@@ -134,12 +134,12 @@ export default function Sidebar() {
                                 )}
 
                                 {/* QA Leads - QA Reviewer (5) and QA Manager (6) */}
-                                {(userRoleId === 5 || userRoleId === 6) && (
+                                {(userRoleId === 5) && (
                                     <Link
                                         href="/leads"
                                         className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
                                     >
-                                        <span>QA Leads</span>
+                                        <span>QA Approvals</span>
                                     </Link>
                                 )}
 
@@ -180,8 +180,8 @@ export default function Sidebar() {
                     </Link>
                 )}
 
-                {/* Reports - Super Admin (1), Admin (2), and QA Manager (6) only */}
-                {(userRoleId === 1 || userRoleId === 2 || userRoleId === 6) && (
+                {/* Reports - Super Admin (1), and QA Manager (6) only */}
+                {(userRoleId === 1 || userRoleId === 6) && (
                     <div className="nav-item-group">
                         <button
                             className={`nav-item nav-item-toggle ${pathname.startsWith('/reports') ? 'active' : ''}`}

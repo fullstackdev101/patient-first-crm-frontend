@@ -87,33 +87,28 @@ export default function AgentLeadsPage() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, totalLeads);
 
-    const getStatusBadgeClass = (status: string) => {
-        switch (status) {
-            case 'Approved':
-                return 'badge-success';
-            case 'Pending':
-                return 'badge-warning';
-            case 'Manager Review':
-            case 'Manage Review':
-                return 'badge-info';
-            case 'QA Review':
-                return 'badge-purple';
-            case 'Rejected':
-                return 'badge-danger';
-            case 'Entry':
-                return 'badge-default';
-            case 'New':
-                return 'badge-info';
-            case 'Contacted':
-                return 'badge-default';
-            case 'Qualified':
-                return 'badge-purple';
-            case 'Converted':
-                return 'badge-success';
-            case 'Lost':
-                return 'badge-danger';
+    // Get badge class based on status ID (not name) for consistency
+    // Status IDs: 1=New, 2=Manager Review, 3=QA Review, 4=Approved, 5=Pending, 7=Rejected, 8=License Agent
+    const getStatusBadgeClass = (statusId: number | string | undefined) => {
+        const id = typeof statusId === 'string' ? parseInt(statusId) : statusId;
+        
+        switch (id) {
+            case 1: // New
+                return 'badge-info'; // Blue
+            case 2: // Manager Review
+                return 'badge-info'; // Blue
+            case 3: // QA Review
+                return 'badge-purple'; // Purple
+            case 4: // Approved
+                return 'badge-success'; // Green
+            case 5: // Pending
+                return 'badge-warning'; // Yellow/Orange
+            case 7: // Rejected
+                return 'badge-danger'; // Red
+            case 8: // License Agent
+                return 'badge-info'; // Blue
             default:
-                return 'badge-default';
+                return 'badge-default'; // Gray
         }
     };
 
@@ -216,7 +211,7 @@ export default function AgentLeadsPage() {
                                                         <div className="text-bold">{lead.first_name} {lead.last_name}</div>
                                                     </td>
                                                     <td>
-                                                        <span className={`badge ${getStatusBadgeClass(lead.status)}`} style={{
+                                                        <span className={`badge ${getStatusBadgeClass(lead.status_id)}`} style={{
                                                             padding: '4px 12px',
                                                             borderRadius: '12px',
                                                             fontSize: '12px',

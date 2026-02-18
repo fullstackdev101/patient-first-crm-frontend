@@ -144,7 +144,7 @@ export default function DailyReport() {
                                         </div>
                                     </div>
 
-                                    <div className="card" style={{ padding: '20px' }}>
+                                    {/* <div className="card" style={{ padding: '20px' }}>
                                         <div style={{ fontSize: '13px', color: 'var(--gray-600)', marginBottom: '8px' }}>Other</div>
                                         <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--warning-600)' }}>
                                             {totals.other.toLocaleString()}
@@ -152,7 +152,7 @@ export default function DailyReport() {
                                         <div style={{ fontSize: '12px', color: 'var(--gray-500)', marginTop: '4px' }}>
                                             {totals.totalLeads > 0 ? ((totals.other / totals.totalLeads) * 100).toFixed(1) : '0.0'}%
                                         </div>
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 {/* Data Table */}
@@ -165,7 +165,7 @@ export default function DailyReport() {
                                                     <th>Total Leads</th>
                                                     <th>Approved</th>
                                                     <th>Rejected</th>
-                                                    <th>Other</th>
+                                                    {/* <th>Other</th> */}
                                                     <th>Conversion Rate</th>
                                                 </tr>
                                             </thead>
@@ -213,7 +213,7 @@ export default function DailyReport() {
                                                                     {row.rejected}
                                                                 </span>
                                                             </td>
-                                                            <td>
+                                                            {/* <td>
                                                                 <span className={`badge ${getStatusBadgeClass('other')}`} style={{
                                                                     padding: '4px 12px',
                                                                     borderRadius: '12px',
@@ -222,7 +222,7 @@ export default function DailyReport() {
                                                                 }}>
                                                                     {row.other}
                                                                 </span>
-                                                            </td>
+                                                            </td> */}
                                                             <td>
                                                                 <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary-600)' }}>
                                                                     {row.conversionRate}%
@@ -261,7 +261,7 @@ export default function DailyReport() {
                                                                 {totals.rejected}
                                                             </span>
                                                         </td>
-                                                        <td>
+                                                        {/* <td>
                                                             <span className={`badge ${getStatusBadgeClass('other')}`} style={{
                                                                 padding: '4px 12px',
                                                                 borderRadius: '12px',
@@ -270,7 +270,7 @@ export default function DailyReport() {
                                                             }}>
                                                                 {totals.other}
                                                             </span>
-                                                        </td>
+                                                        </td> */}
                                                         <td>
                                                             <strong style={{ color: 'var(--primary-600)' }}>
                                                                 {overallConversion}%

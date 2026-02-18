@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Sidebar from '../../../components/Sidebar';
 import Topbar from '../../../components/Topbar';
 import ProtectedRoute from '../../../components/ProtectedRoute';
-import { useLeadsStore } from '@/store';
+import { useLeadsStore, useAuthStore } from "@/store";
 import { maskSSN, maskPhone, maskAccountNumber, maskRoutingNumber } from '@/lib/inputMask';
 import axios from '@/lib/axios';
 
@@ -21,19 +21,12 @@ export default function ViewLeadPage() {
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState('');
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-    const [selectedStatus, setSelectedStatus] = useState<number>(1);
+    const [selectedStatus, setSelectedStatus] = useState<string>("");
 
     // Fetch lead data on mount
     useEffect(() => {
         fetchLeadById(leadId);
     }, [leadId, fetchLeadById]);
-
-    // Update selected status when lead loads
-    useEffect(() => {
-        if (currentLead) {
-            setSelectedStatus(currentLead.status || 1);
-        }
-    }, [currentLead]);
 
     // Fetch statuses
     useEffect(() => {
@@ -67,13 +60,18 @@ export default function ViewLeadPage() {
         }
     }, [leadId]);
 
-    const handleStatusChange = async (newStatus: number) => {
+    const handleStatusChange = async (newStatus: string) => {
         try {
             const response = await axios.put(`/leads/${leadId}`, {
-                status: newStatus,
+                // status: newStatus,
+                lead_manual_status: newStatus,
             });
 
-            if (response.data.success) {
+            const currentUser = useAuthStore.getState().user;
+            if (response.data.success && currentUser) {
+                if ((currentUser.role_id === 4 || currentUser.role_id === 5) && (newStatus === "approved" || newStatus === "rejected")) {
+                    router.replace('/leads');
+                }
                 setSelectedStatus(newStatus);
                 alert('Status updated successfully!');
                 // Refresh lead data
@@ -95,9 +93,8 @@ export default function ViewLeadPage() {
 
         setIsSubmittingComment(true);
         try {
-            const userStr = localStorage.getItem('user');
-            const user = userStr ? JSON.parse(userStr) : null;
-            const userId = user?.id || user?.user_id || user?.userId || 1;
+            const currentUser = useAuthStore.getState().user;
+            const userId = currentUser?.id;
 
             const response = await axios.post(`/leads/${leadId}/comments`, {
                 user_id: userId,
@@ -388,7 +385,7 @@ export default function ViewLeadPage() {
                                         </label >
                                         <select
                                             value={selectedStatus}
-                                            onChange={(e) => handleStatusChange(parseInt(e.target.value))}
+                                            onChange={(e) => handleStatusChange(e.target.value)}
                                             style={{
                                                 width: '100%',
                                                 padding: '10px 12px',
@@ -401,11 +398,8 @@ export default function ViewLeadPage() {
                                             {/* Not selected / null option */}
                                             <option value="">-- Select Status --</option>
                                             {/* Only show Pending, Approved, Rejected for manual selection */}
-                                            {statuses.filter(status => [5, 6, 7].includes(status.id)).map((status) => (
-                                                <option key={status.id} value={status.id}>
-                                                    {status.status_name}
-                                                </option>
-                                            ))}
+                                            <option value="approved">Approved</option>
+                                            <option value="rejected">Rejected</option>
                                         </select>
                                     </div >
                                 </div >
@@ -463,47 +457,46 @@ export default function ViewLeadPage() {
                                                                     fontSize: '12px',
                                                                     fontWeight: '500',
                                                                     backgroundColor: (() => {
-                                                                        switch (status.status_name) {
-                                                                            case 'Approved':
-                                                                                return '#d1fae5';
-                                                                            case 'Pending':
-                                                                                return '#fef3c7';
-                                                                            case 'Manager Review':
-                                                                            case 'Manage Review':
-                                                                                return '#dbeafe';
-                                                                            case 'QA Review':
-                                                                                return '#e9d5ff';
-                                                                            case 'QA Manager Review':
-                                                                                return '#fce7f3';
-                                                                            case 'Rejected':
-                                                                                return '#fee2e2';
-                                                                            case 'New':
-                                                                            case 'Entry':
-                                                                                return '#f3f4f6';
+                                                                        // Use status ID for color determination (not name)
+                                                                        // Status IDs: 1=New, 2=Manager Review, 3=QA Review, 4=Approved, 5=Pending, 7=Rejected, 8=License Agent
+                                                                        switch (status.id) {
+                                                                            case 1: // New
+                                                                                return '#f3f4f6'; // Light gray
+                                                                            case 2: // Manager Review
+                                                                                return '#dbeafe'; // Light blue
+                                                                            case 3: // QA Review
+                                                                                return '#e9d5ff'; // Light purple
+                                                                            case 4: // Approved
+                                                                                return '#d1fae5'; // Light green
+                                                                            case 5: // Pending
+                                                                                return '#fef3c7'; // Light yellow
+                                                                            case 7: // Rejected
+                                                                                return '#fee2e2'; // Light red
+                                                                            case 8: // License Agent
+                                                                                return '#dbeafe'; // Light blue
                                                                             default:
-                                                                                return '#f3f4f6';
+                                                                                return '#f3f4f6'; // Light gray
                                                                         }
                                                                     })(),
                                                                     color: (() => {
-                                                                        switch (status.status_name) {
-                                                                            case 'Approved':
-                                                                                return '#065f46';
-                                                                            case 'Pending':
-                                                                                return '#92400e';
-                                                                            case 'Manager Review':
-                                                                            case 'Manage Review':
-                                                                                return '#1e40af';
-                                                                            case 'QA Review':
-                                                                                return '#6b21a8';
-                                                                            case 'QA Manager Review':
-                                                                                return '#9f1239';
-                                                                            case 'Rejected':
-                                                                                return '#991b1b';
-                                                                            case 'New':
-                                                                            case 'Entry':
-                                                                                return '#4b5563';
+                                                                        // Use status ID for color determination (not name)
+                                                                        switch (status.id) {
+                                                                            case 1: // New
+                                                                                return '#4b5563'; // Dark gray
+                                                                            case 2: // Manager Review
+                                                                                return '#1e40af'; // Dark blue
+                                                                            case 3: // QA Review
+                                                                                return '#6b21a8'; // Dark purple
+                                                                            case 4: // Approved
+                                                                                return '#065f46'; // Dark green
+                                                                            case 5: // Pending
+                                                                                return '#92400e'; // Dark yellow/orange
+                                                                            case 7: // Rejected
+                                                                                return '#991b1b'; // Dark red
+                                                                            case 8: // License Agent
+                                                                                return '#1e40af'; // Dark blue
                                                                             default:
-                                                                                return '#4b5563';
+                                                                                return '#4b5563'; // Dark gray
                                                                         }
                                                                     })()
                                                                 }}>
