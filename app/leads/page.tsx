@@ -21,6 +21,7 @@ export default function LeadsPage() {
   const { leads, isLoading, error, totalLeads } = useLeadsStore();
 
   // Local state for filters
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
@@ -44,6 +45,13 @@ export default function LeadsPage() {
       setStatusFilter(licenseAgentStatusId);
     }
   }, [currentUser, licenseAgentStatusId]);
+
+  // Show scroll-to-top button after scrolling down 300px
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // State for assigned users filter
   const [assignedUsers, setAssignedUsers] = useState<any[]>([]);
@@ -1321,6 +1329,38 @@ export default function LeadsPage() {
           </main>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          title="Back to top"
+          style={{
+            position: "fixed",
+            bottom: "32px",
+            right: "32px",
+            width: "44px",
+            height: "44px",
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, var(--primary-500), var(--secondary-500))",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            zIndex: 1000,
+            transition: "opacity 0.2s, transform 0.2s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+      )}
     </ProtectedRoute>
   );
 }

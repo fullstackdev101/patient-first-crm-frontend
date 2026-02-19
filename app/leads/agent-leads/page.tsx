@@ -25,13 +25,12 @@ export default function AgentLeadsPage() {
 
     // Local pagination state
     const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(25);
 
-    const itemsPerPage = 5;
-
-    // Reset to page 1 when filters change
+    // Reset to page 1 when filters or items-per-page change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, statusFilter]);
+    }, [searchQuery, statusFilter, itemsPerPage]);
 
     // Fetch statuses from API
     useEffect(() => {
@@ -80,7 +79,7 @@ export default function AgentLeadsPage() {
         };
 
         fetchWithFilters();
-    }, [searchQuery, statusFilter, currentPage]);
+    }, [searchQuery, statusFilter, currentPage, itemsPerPage]);
 
     // Calculate pagination
     const totalPages = Math.ceil(totalLeads / itemsPerPage);
@@ -91,7 +90,7 @@ export default function AgentLeadsPage() {
     // Status IDs: 1=New, 2=Manager Review, 3=QA Review, 4=Approved, 5=Pending, 7=Rejected, 8=License Agent
     const getStatusBadgeClass = (statusId: number | string | undefined) => {
         const id = typeof statusId === 'string' ? parseInt(statusId) : statusId;
-        
+
         switch (id) {
             case 1: // New
                 return 'badge-info'; // Blue
@@ -237,11 +236,36 @@ export default function AgentLeadsPage() {
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
                                 }}>
-                                    <div style={{ fontSize: '14px', color: 'var(--gray-600)' }}>
-                                        Showing {startIndex + 1} to {endIndex} of {totalLeads} leads
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ fontSize: '14px', color: 'var(--gray-600)' }}>
+                                            Showing {startIndex + 1} to {endIndex} of {totalLeads} leads
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <label style={{ fontSize: '14px', color: 'var(--gray-600)', fontWeight: '500' }}>
+                                                Per page:
+                                            </label>
+                                            <select
+                                                value={itemsPerPage}
+                                                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    border: '1px solid var(--gray-300)',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px',
+                                                    background: 'white',
+                                                    cursor: 'pointer',
+                                                }}
+                                            >
+                                                <option value={25}>25</option>
+                                                <option value={50}>50</option>
+                                                <option value={100}>100</option>
+                                                <option value={250}>250</option>
+                                                <option value={500}>500</option>
+                                            </select>
+                                        </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                                         {/* Previous Button */}
                                         <button
                                             onClick={() => handlePageChange(currentPage - 1)}
@@ -260,26 +284,116 @@ export default function AgentLeadsPage() {
                                             Previous
                                         </button>
 
-                                        {/* Page Numbers */}
-                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                            <button
-                                                key={page}
-                                                onClick={() => handlePageChange(page)}
-                                                style={{
-                                                    padding: '8px 12px',
-                                                    border: '1px solid var(--gray-300)',
-                                                    borderRadius: '6px',
-                                                    background: currentPage === page ? 'var(--primary-500)' : 'white',
-                                                    color: currentPage === page ? 'white' : 'var(--gray-700)',
-                                                    cursor: 'pointer',
-                                                    fontSize: '14px',
-                                                    fontWeight: currentPage === page ? '600' : '500',
-                                                    minWidth: '40px',
-                                                }}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
+                                        {/* Smart Page Numbers */}
+                                        {(() => {
+                                            const pageButtons = [];
+                                            const maxVisiblePages = 7;
+
+                                            if (totalPages <= maxVisiblePages) {
+                                                for (let i = 1; i <= totalPages; i++) {
+                                                    pageButtons.push(
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => handlePageChange(i)}
+                                                            style={{
+                                                                padding: '8px 12px',
+                                                                border: '1px solid var(--gray-300)',
+                                                                borderRadius: '6px',
+                                                                background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                color: currentPage === i ? 'white' : 'var(--gray-700)',
+                                                                cursor: 'pointer',
+                                                                fontSize: '14px',
+                                                                fontWeight: currentPage === i ? '600' : '500',
+                                                                minWidth: '40px',
+                                                            }}
+                                                        >
+                                                            {i}
+                                                        </button>
+                                                    );
+                                                }
+                                            } else {
+                                                // Always show first page
+                                                pageButtons.push(
+                                                    <button
+                                                        key={1}
+                                                        onClick={() => handlePageChange(1)}
+                                                        style={{
+                                                            padding: '8px 12px',
+                                                            border: '1px solid var(--gray-300)',
+                                                            borderRadius: '6px',
+                                                            background: currentPage === 1 ? 'var(--primary-500)' : 'white',
+                                                            color: currentPage === 1 ? 'white' : 'var(--gray-700)',
+                                                            cursor: 'pointer',
+                                                            fontSize: '14px',
+                                                            fontWeight: currentPage === 1 ? '600' : '500',
+                                                            minWidth: '40px',
+                                                        }}
+                                                    >
+                                                        1
+                                                    </button>
+                                                );
+
+                                                if (currentPage > 3) {
+                                                    pageButtons.push(
+                                                        <span key="ellipsis-start" style={{ padding: '8px 4px', color: 'var(--gray-500)' }}>...</span>
+                                                    );
+                                                }
+
+                                                const startPage = Math.max(2, currentPage - 1);
+                                                const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+                                                for (let i = startPage; i <= endPage; i++) {
+                                                    pageButtons.push(
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => handlePageChange(i)}
+                                                            style={{
+                                                                padding: '8px 12px',
+                                                                border: '1px solid var(--gray-300)',
+                                                                borderRadius: '6px',
+                                                                background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                color: currentPage === i ? 'white' : 'var(--gray-700)',
+                                                                cursor: 'pointer',
+                                                                fontSize: '14px',
+                                                                fontWeight: currentPage === i ? '600' : '500',
+                                                                minWidth: '40px',
+                                                            }}
+                                                        >
+                                                            {i}
+                                                        </button>
+                                                    );
+                                                }
+
+                                                if (currentPage < totalPages - 2) {
+                                                    pageButtons.push(
+                                                        <span key="ellipsis-end" style={{ padding: '8px 4px', color: 'var(--gray-500)' }}>...</span>
+                                                    );
+                                                }
+
+                                                // Always show last page
+                                                pageButtons.push(
+                                                    <button
+                                                        key={totalPages}
+                                                        onClick={() => handlePageChange(totalPages)}
+                                                        style={{
+                                                            padding: '8px 12px',
+                                                            border: '1px solid var(--gray-300)',
+                                                            borderRadius: '6px',
+                                                            background: currentPage === totalPages ? 'var(--primary-500)' : 'white',
+                                                            color: currentPage === totalPages ? 'white' : 'var(--gray-700)',
+                                                            cursor: 'pointer',
+                                                            fontSize: '14px',
+                                                            fontWeight: currentPage === totalPages ? '600' : '500',
+                                                            minWidth: '40px',
+                                                        }}
+                                                    >
+                                                        {totalPages}
+                                                    </button>
+                                                );
+                                            }
+
+                                            return pageButtons;
+                                        })()}
 
                                         {/* Next Button */}
                                         <button
