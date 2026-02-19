@@ -25,7 +25,7 @@ export default function AgentLeadsPage() {
 
     // Local pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(25);
+    const [itemsPerPage, setItemsPerPage] = useState(500);
 
     // Reset to page 1 when filters or items-per-page change
     useEffect(() => {

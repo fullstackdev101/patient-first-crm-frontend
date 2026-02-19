@@ -61,6 +61,16 @@ export default function ViewLeadPage() {
     }, [leadId]);
 
     const handleStatusChange = async (newStatus: string) => {
+
+        // Confirmation alert
+        const confirmed = window.confirm(
+            `Are you sure you want to change lead status.`,
+        );
+
+        if (!confirmed) {
+            return; // User cancelled
+        }
+
         try {
             const response = await axios.put(`/leads/${leadId}`, {
                 // status: newStatus,

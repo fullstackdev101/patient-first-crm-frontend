@@ -67,7 +67,7 @@ export default function LeadsPage() {
 
   // Local pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [itemsPerPage, setItemsPerPage] = useState(500);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -465,8 +465,7 @@ export default function LeadsPage() {
       );
     }
   };
-  console.log("----------------------");
-  console.log(statuses);
+
   return (
     <ProtectedRoute>
       <NewLeadNotification />
@@ -990,7 +989,7 @@ export default function LeadsPage() {
                                 </svg>
                               </Link>
                               {/* Delete Icon - Super Admin only */}
-                              {currentUser?.role_id === 1 && (
+                              {(currentUser?.role_id === 1 || currentUser?.role_id === 6) && (
                                 <button
                                   onClick={() =>
                                     handleDeleteLead(
