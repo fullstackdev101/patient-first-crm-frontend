@@ -140,6 +140,7 @@ export default function EditLeadPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return; // prevent duplicate submissions
 
     const requiredFields = [
       "first_name", "last_name", "dob_year", "dob_month", "dob_day",
@@ -189,6 +190,7 @@ export default function EditLeadPage() {
           (formData.lead_manual_status === "approved" || formData.lead_manual_status === "rejected")
         ) {
           router.replace("/leads");
+          return; // stop here — no further API calls after redirect
         }
       }
 
@@ -597,9 +599,9 @@ export default function EditLeadPage() {
                   {/* Form Actions */}
                   <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
                     <Link href="/leads" className="btn-secondary">Cancel</Link>
-                    <button ref={saveButtonRef} type="submit" className="btn-primary" disabled={!hasChanges}
-                      style={{ opacity: hasChanges ? 1 : 0.5, cursor: hasChanges ? "pointer" : "not-allowed" }}>
-                      Save Changes
+                    <button ref={saveButtonRef} type="submit" className="btn-primary" disabled={!hasChanges || isSaving}
+                      style={{ opacity: (hasChanges && !isSaving) ? 1 : 0.5, cursor: (hasChanges && !isSaving) ? "pointer" : "not-allowed" }}>
+                      {isSaving ? "Saving..." : "Save Changes"}
                     </button>
                   </div>
                 </form>
@@ -620,12 +622,13 @@ export default function EditLeadPage() {
 
                         const statusColors: Record<number, { bg: string; text: string }> = {
                           1: { bg: "#f3f4f6", text: "#4b5563" },
-                          2: { bg: "#dbeafe", text: "#1e40af" },
-                          3: { bg: "#e9d5ff", text: "#6b21a8" },
-                          4: { bg: "#d1fae5", text: "#065f46" },
-                          5: { bg: "#fef3c7", text: "#92400e" },
-                          7: { bg: "#fee2e2", text: "#991b1b" },
                           8: { bg: "#dbeafe", text: "#1e40af" },
+                          3: { bg: "#e9d5ff", text: "#6b21a8" },
+                          5: { bg: "#d1fae5", text: "#065f46" },
+                          4: { bg: "#fef3c7", text: "#92400e" },
+                          7: { bg: "#fee2e2", text: "#991b1b" },
+                          9: { bg: "#fee2e2", text: "#991b1b" },
+                          // 8: { bg: "#dbeafe", text: "#1e40af" },
                         };
                         const colors = statusColors[status.id] || { bg: "#f3f4f6", text: "#4b5563" };
 

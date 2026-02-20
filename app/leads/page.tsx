@@ -243,15 +243,15 @@ export default function LeadsPage() {
     const id = typeof statusId === "string" ? parseInt(statusId) : statusId;
 
     switch (id) {
-      case 1: // New
+      case 4: // Pending
         return "badge-info"; // Blue
       case 2: // Manager Review
         return "badge-info"; // Blue
       case 3: // QA Review
         return "badge-purple"; // Purple
-      case 4: // Approved
+      case 5: // Approved
         return "badge-success"; // Green
-      case 5: // Pending
+      case 1: // New
         return "badge-warning"; // Yellow/Orange
       case 7: // Rejected
         return "badge-danger"; // Red

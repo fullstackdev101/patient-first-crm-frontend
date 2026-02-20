@@ -60,11 +60,18 @@ export default function ViewLeadPage() {
         }
     }, [leadId]);
 
-    const handleStatusChange = async (newStatus: string) => {
+    const handleStatusChange = async (newStatus: string, existingStatus: number) => {
+
+        // console.log('Existing status: ' + existingStatus);
+        if ((existingStatus === 5 && newStatus === "approved") || (existingStatus === 7 && newStatus === "rejected")) {
+            return;
+        }
+
+
 
         // Confirmation alert
         const confirmed = window.confirm(
-            `Are you sure you want to change lead status.`,
+            `Are you sure you want to change lead status ${newStatus} `,
         );
 
         if (!confirmed) {
@@ -395,7 +402,7 @@ export default function ViewLeadPage() {
                                         </label >
                                         <select
                                             value={selectedStatus}
-                                            onChange={(e) => handleStatusChange(e.target.value)}
+                                            onChange={(e) => handleStatusChange(e.target.value, currentLead?.status)}
                                             style={{
                                                 width: '100%',
                                                 padding: '10px 12px',
