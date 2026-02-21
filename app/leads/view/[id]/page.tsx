@@ -60,18 +60,27 @@ export default function ViewLeadPage() {
         }
     }, [leadId]);
 
-    const handleStatusChange = async (newStatus: string, existingStatus: number) => {
+    const handleStatusChange = async (el: HTMLSelectElement) => {
+
+        // 1. Get the value of the selected option
+        const newStatus = el.value;
+
+        // 2. Get the visible text of the selected option
+        const index = el.selectedIndex;
+        const newStatusName = el.options[index].text; // .innerText works too, but .text is the standard for options
+
+        // 3. Pass both to your handler
 
         // console.log('Existing status: ' + existingStatus);
-        if ((existingStatus === 5 && newStatus === "approved") || (existingStatus === 7 && newStatus === "rejected")) {
-            return;
-        }
+        // if ((existingStatus === 5 && newStatus === "approved") || (existingStatus === 7 && newStatus === "rejected")) {
+        //     return;
+        // }
 
 
 
         // Confirmation alert
         const confirmed = window.confirm(
-            `Are you sure you want to change lead status ${newStatus} `,
+            `Are you sure you want to change lead status to ${newStatusName} `,
         );
 
         if (!confirmed) {
@@ -80,15 +89,15 @@ export default function ViewLeadPage() {
 
         try {
             const response = await axios.put(`/leads/${leadId}`, {
-                // status: newStatus,
-                lead_manual_status: newStatus,
+                status: newStatus,
+                // lead_manual_status: newStatus,
             });
 
             const currentUser = useAuthStore.getState().user;
             if (response.data.success && currentUser) {
-                if ((currentUser.role_id === 4 || currentUser.role_id === 5) && (newStatus === "approved" || newStatus === "rejected")) {
-                    router.replace('/leads');
-                }
+                // if ((currentUser.role_id === 4 || currentUser.role_id === 5) && (newStatus === "approved" || newStatus === "rejected")) {
+                //     router.replace('/leads');
+                // }
                 setSelectedStatus(newStatus);
                 alert('Status updated successfully!');
                 // Refresh lead data
@@ -154,6 +163,9 @@ export default function ViewLeadPage() {
             </ProtectedRoute >
         );
     }
+
+    const currentUser = useAuthStore.getState().user;
+
 
     return (
         <ProtectedRoute>
@@ -392,34 +404,42 @@ export default function ViewLeadPage() {
                             {/* Right Column - Status & Comments */}
                             < div style={{ position: 'sticky', top: '24px', height: 'fit-content' }}>
                                 {/* Status Section */}
-                                < div className="card" style={{ marginBottom: '24px' }}>
-                                    < div className="card-header">
-                                        < h3 className="card-title">Lead Status</h3>
-                                    </div >
-                                    <div className="card-content" style={{ padding: '20px' }}>
-                                        < label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--gray-700)' }}>
-                                            Change Status
-                                        </label >
-                                        <select
-                                            value={selectedStatus}
-                                            onChange={(e) => handleStatusChange(e.target.value, currentLead?.status)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px 12px',
-                                                border: '1px solid var(--gray-300)',
-                                                borderRadius: '8px',
-                                                fontSize: '14px',
-                                                background: 'white'
-                                            }}
-                                        >
-                                            {/* Not selected / null option */}
-                                            <option value="">-- Select Status --</option>
-                                            {/* Only show Pending, Approved, Rejected for manual selection */}
+                                {(currentUser?.role_id === 1 || currentUser?.role_id === 6)
+                                    && < div className="card" style={{ marginBottom: '24px' }}>
+                                        < div className="card-header">
+                                            < h3 className="card-title">Lead Status</h3>
+                                        </div >
+                                        <div className="card-content" style={{ padding: '20px' }}>
+                                            < label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--gray-700)' }}>
+                                                Change Status
+                                            </label >
+                                            <select
+                                                value={selectedStatus}
+                                                onChange={(e) => handleStatusChange(e.currentTarget)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px 12px',
+                                                    border: '1px solid var(--gray-300)',
+                                                    borderRadius: '8px',
+                                                    fontSize: '14px',
+                                                    background: 'white'
+                                                }}
+                                            >
+                                                {/* Not selected / null option */}
+                                                <option value="">-- Select Status --</option>
+                                                {/* Only show Pending, Approved, Rejected for manual selection */}
+                                                {/*
                                             <option value="approved">Approved</option>
                                             <option value="rejected">Rejected</option>
-                                        </select>
-                                    </div >
-                                </div >
+                                            */}
+                                                {statuses.map((status) => (
+                                                    <option key={status.id} value={status.id}>
+                                                        {status.status_name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div >
+                                    </div >}
 
                                 {/* Status Timeline */}
                                 < div className="card" style={{ marginBottom: '24px' }}>

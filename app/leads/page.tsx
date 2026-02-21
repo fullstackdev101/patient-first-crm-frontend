@@ -988,7 +988,7 @@ export default function LeadsPage() {
                                   ></path>
                                 </svg>
                               </Link>
-                              {/* Delete Icon - Super Admin only */}
+                              {/* Delete Icon - Super Admin and QA Manager only can see */}
                               {(currentUser?.role_id === 1 || currentUser?.role_id === 6) && (
                                 <button
                                   onClick={() =>
