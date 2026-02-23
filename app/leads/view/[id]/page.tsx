@@ -184,7 +184,7 @@ export default function ViewLeadPage() {
                                 <Link
                                     href="/leads"
                                     className="btn-secondary"
-                                    style={{ textDecoration: 'none', padding: '10px 20px', border: '1px solid var(--gray-300)', borderRadius: '8px', background: 'white', color: 'var(--gray-700)', fontSize: '14px', fontWeight: '500' }}
+                                    style={{ textDecoration: 'none', padding: '10px 20px', border: '1px solid var(--gray-300)', borderRadius: '8px', background: 'var(--card-bg)', color: 'var(--gray-700)', fontSize: '14px', fontWeight: '500' }}
                                 >
                                     ← Back to Leads
                                 </Link>
@@ -422,7 +422,8 @@ export default function ViewLeadPage() {
                                                     border: '1px solid var(--gray-300)',
                                                     borderRadius: '8px',
                                                     fontSize: '14px',
-                                                    background: 'white'
+                                                    background: 'var(--card-bg)',
+                                                    color: 'var(--text-primary)'
                                                 }}
                                             >
                                                 {/* Not selected / null option */}
@@ -455,7 +456,7 @@ export default function ViewLeadPage() {
                                                 top: '10px',
                                                 bottom: '10px',
                                                 width: '2px',
-                                                background: '#e5e7eb'
+                                                background: 'var(--gray-200)'
                                             }}></div >
 
                                             {/* Timeline Items */}
@@ -479,8 +480,8 @@ export default function ViewLeadPage() {
                                                                 width: '20px',
                                                                 height: '20px',
                                                                 borderRadius: '50%',
-                                                                border: `3px solid ${isActive ? '#10b981' : '#e5e7eb'}`,
-                                                                background: isActive ? '#10b981' : 'white',
+                                                                border: `3px solid ${isActive ? '#10b981' : 'var(--gray-200)'}`,
+                                                                background: isActive ? '#10b981' : 'var(--card-bg)',
                                                                 zIndex: 1
                                                             }}></div>
 
@@ -498,42 +499,42 @@ export default function ViewLeadPage() {
                                                                         // Status IDs: 1=New, 2=Manager Review, 3=QA Review, 4=Approved, 5=Pending, 7=Rejected, 8=License Agent
                                                                         switch (status.id) {
                                                                             case 1: // New
-                                                                                return '#f3f4f6'; // Light gray
+                                                                                return 'var(--gray-100)'; // Light gray
                                                                             case 2: // Manager Review
-                                                                                return '#dbeafe'; // Light blue
+                                                                                return 'var(--secondary-50)'; // Light blue
                                                                             case 3: // QA Review
-                                                                                return '#e9d5ff'; // Light purple
+                                                                                return 'var(--purple-100)'; // Light purple
                                                                             case 4: // Approved
-                                                                                return '#d1fae5'; // Light green
+                                                                                return 'var(--primary-100)'; // Light green
                                                                             case 5: // Pending
-                                                                                return '#fef3c7'; // Light yellow
+                                                                                return 'var(--amber-100)'; // Light yellow
                                                                             case 7: // Rejected
-                                                                                return '#fee2e2'; // Light red
+                                                                                return 'var(--rose-100)'; // Light red
                                                                             case 8: // License Agent
-                                                                                return '#dbeafe'; // Light blue
+                                                                                return 'var(--secondary-50)'; // Light blue
                                                                             default:
-                                                                                return '#f3f4f6'; // Light gray
+                                                                                return 'var(--gray-100)'; // Light gray
                                                                         }
                                                                     })(),
                                                                     color: (() => {
                                                                         // Use status ID for color determination (not name)
                                                                         switch (status.id) {
                                                                             case 1: // New
-                                                                                return '#4b5563'; // Dark gray
+                                                                                return 'var(--gray-600)'; // Dark gray
                                                                             case 2: // Manager Review
-                                                                                return '#1e40af'; // Dark blue
+                                                                                return 'var(--secondary-600)'; // Dark blue
                                                                             case 3: // QA Review
-                                                                                return '#6b21a8'; // Dark purple
+                                                                                return 'var(--purple-800)'; // Dark purple
                                                                             case 4: // Approved
-                                                                                return '#065f46'; // Dark green
+                                                                                return 'var(--primary-900)'; // Dark green
                                                                             case 5: // Pending
-                                                                                return '#92400e'; // Dark yellow/orange
+                                                                                return 'var(--amber-800)'; // Dark yellow/orange
                                                                             case 7: // Rejected
-                                                                                return '#991b1b'; // Dark red
+                                                                                return 'var(--rose-800)'; // Dark red
                                                                             case 8: // License Agent
-                                                                                return '#1e40af'; // Dark blue
+                                                                                return 'var(--secondary-600)'; // Dark blue
                                                                             default:
-                                                                                return '#4b5563'; // Dark gray
+                                                                                return 'var(--gray-600)'; // Dark gray
                                                                         }
                                                                     })()
                                                                 }}>
@@ -664,9 +665,9 @@ function QuestionField({ question, answer }: { question: string; answer: any }) 
                     borderRadius: '6px',
                     fontSize: '14px',
                     fontWeight: '600',
-                    background: isYes ? '#fce7f3' : 'white',
+                    background: isYes ? '#fce7f3' : 'var(--card-bg)',
                     color: isYes ? '#be123c' : 'var(--gray-500)',
-                    border: `2px solid ${isYes ? '#f43f5e' : '#d1d5db'}`
+                    border: `2px solid ${isYes ? '#f43f5e' : 'var(--gray-300)'}`
                 }}>
                     Yes {isYes && '✓'}
                 </div>
@@ -675,9 +676,9 @@ function QuestionField({ question, answer }: { question: string; answer: any }) 
                     borderRadius: '6px',
                     fontSize: '14px',
                     fontWeight: '600',
-                    background: isNo ? '#fce7f3' : 'white',
+                    background: isNo ? '#fce7f3' : 'var(--card-bg)',
                     color: isNo ? '#be123c' : 'var(--gray-500)',
-                    border: `2px solid ${isNo ? '#f43f5e' : '#d1d5db'}`
+                    border: `2px solid ${isNo ? '#f43f5e' : 'var(--gray-300)'}`
                 }}>
                     No {isNo && '✓'}
                 </div>

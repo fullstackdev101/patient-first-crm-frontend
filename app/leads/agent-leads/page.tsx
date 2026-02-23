@@ -159,7 +159,7 @@ export default function AgentLeadsPage() {
                                         />
                                     </div>
                                     <select
-                                        style={{ padding: '10px 12px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                                        style={{ padding: '10px 12px', border: '1px solid var(--gray-300)', borderRadius: '8px', fontSize: '14px', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
                                         value={statusFilter || 'All'}
                                         onChange={(e) => setStatusFilter(e.target.value)}
                                     >
@@ -252,7 +252,8 @@ export default function AgentLeadsPage() {
                                                     border: '1px solid var(--gray-300)',
                                                     borderRadius: '6px',
                                                     fontSize: '14px',
-                                                    background: 'white',
+                                                    background: 'var(--card-bg)',
+                                                    color: 'var(--text-primary)',
                                                     cursor: 'pointer',
                                                 }}
                                             >
@@ -274,7 +275,7 @@ export default function AgentLeadsPage() {
                                                 padding: '8px 12px',
                                                 border: '1px solid var(--gray-300)',
                                                 borderRadius: '6px',
-                                                background: currentPage === 1 ? 'var(--gray-100)' : 'white',
+                                                background: currentPage === 1 ? 'var(--gray-100)' : 'var(--card-bg)',
                                                 color: currentPage === 1 ? 'var(--gray-400)' : 'var(--gray-700)',
                                                 cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                                                 fontSize: '14px',
@@ -299,7 +300,7 @@ export default function AgentLeadsPage() {
                                                                 padding: '8px 12px',
                                                                 border: '1px solid var(--gray-300)',
                                                                 borderRadius: '6px',
-                                                                background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                background: currentPage === i ? 'var(--primary-500)' : 'var(--card-bg)',
                                                                 color: currentPage === i ? 'white' : 'var(--gray-700)',
                                                                 cursor: 'pointer',
                                                                 fontSize: '14px',
@@ -321,7 +322,7 @@ export default function AgentLeadsPage() {
                                                             padding: '8px 12px',
                                                             border: '1px solid var(--gray-300)',
                                                             borderRadius: '6px',
-                                                            background: currentPage === 1 ? 'var(--primary-500)' : 'white',
+                                                            background: currentPage === 1 ? 'var(--primary-500)' : 'var(--card-bg)',
                                                             color: currentPage === 1 ? 'white' : 'var(--gray-700)',
                                                             cursor: 'pointer',
                                                             fontSize: '14px',
@@ -351,7 +352,7 @@ export default function AgentLeadsPage() {
                                                                 padding: '8px 12px',
                                                                 border: '1px solid var(--gray-300)',
                                                                 borderRadius: '6px',
-                                                                background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                background: currentPage === i ? 'var(--primary-500)' : 'var(--card-bg)',
                                                                 color: currentPage === i ? 'white' : 'var(--gray-700)',
                                                                 cursor: 'pointer',
                                                                 fontSize: '14px',
@@ -379,7 +380,7 @@ export default function AgentLeadsPage() {
                                                             padding: '8px 12px',
                                                             border: '1px solid var(--gray-300)',
                                                             borderRadius: '6px',
-                                                            background: currentPage === totalPages ? 'var(--primary-500)' : 'white',
+                                                            background: currentPage === totalPages ? 'var(--primary-500)' : 'var(--card-bg)',
                                                             color: currentPage === totalPages ? 'white' : 'var(--gray-700)',
                                                             cursor: 'pointer',
                                                             fontSize: '14px',
@@ -403,7 +404,7 @@ export default function AgentLeadsPage() {
                                                 padding: '8px 12px',
                                                 border: '1px solid var(--gray-300)',
                                                 borderRadius: '6px',
-                                                background: currentPage === totalPages ? 'var(--gray-100)' : 'white',
+                                                background: currentPage === totalPages ? 'var(--gray-100)' : 'var(--card-bg)',
                                                 color: currentPage === totalPages ? 'var(--gray-400)' : 'var(--gray-700)',
                                                 cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                                                 fontSize: '14px',

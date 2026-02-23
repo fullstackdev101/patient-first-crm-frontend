@@ -216,7 +216,8 @@ export default function TeamsPage() {
                                                     border: '1px solid var(--gray-300)',
                                                     borderRadius: '8px',
                                                     fontSize: '14px',
-                                                    background: 'white'
+                                                    background: 'var(--card-bg)',
+                                                    color: 'var(--text-primary)'
                                                 }}
                                             >
                                                 <option value="active">Active</option>
@@ -303,12 +304,12 @@ export default function TeamsPage() {
                                                                     className="btn-icon"
                                                                     title="Edit"
                                                                     style={{
-                                                                        padding: '8px',
-                                                                        border: '1px solid #d1d5db',
-                                                                        borderRadius: '6px',
-                                                                        background: 'white',
-                                                                        cursor: 'pointer',
-                                                                        color: '#6366f1'
+                                                                    padding: '8px',
+                                                                    border: '1px solid var(--border-color)',
+                                                                    borderRadius: '6px',
+                                                                    background: 'var(--card-bg)',
+                                                                    cursor: 'pointer',
+                                                                    color: '#6366f1'
                                                                     }}
                                                                 >
                                                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,12 +323,12 @@ export default function TeamsPage() {
                                                                     className="btn-icon"
                                                                     title="Delete"
                                                                     style={{
-                                                                        padding: '8px',
-                                                                        border: '1px solid #d1d5db',
-                                                                        borderRadius: '6px',
-                                                                        background: 'white',
-                                                                        cursor: 'pointer',
-                                                                        color: '#ef4444'
+                                                                    padding: '8px',
+                                                                    border: '1px solid var(--border-color)',
+                                                                    borderRadius: '6px',
+                                                                    background: 'var(--card-bg)',
+                                                                    cursor: 'pointer',
+                                                                    color: '#ef4444'
                                                                     }}
                                                                 >
                                                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">

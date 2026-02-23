@@ -27,7 +27,7 @@ export default function Home() {
       justifyContent: 'center',
       alignItems: 'center',
       height: '100vh',
-      color: '#6b7280',
+      color: 'var(--text-secondary)',
     }}>
       Loading...
     </div>

@@ -216,7 +216,8 @@ export default function UsersPage() {
                                             border: '1px solid var(--gray-300)',
                                             borderRadius: '8px',
                                             fontSize: '14px',
-                                            background: 'white'
+                                            background: 'var(--card-bg)',
+                                            color: 'var(--text-primary)'
                                         }}
                                     >
                                         <option value="">All Roles</option>
@@ -243,7 +244,8 @@ export default function UsersPage() {
                                             border: '1px solid var(--gray-300)',
                                             borderRadius: '8px',
                                             fontSize: '14px',
-                                            background: 'white'
+                                            background: 'var(--card-bg)',
+                                            color: 'var(--text-primary)'
                                         }}
                                     >
                                         <option value="">All Teams</option>
@@ -355,11 +357,11 @@ export default function UsersPage() {
                                                             <td>
                                                                 <span style={{
                                                                     padding: '4px 12px',
-                                                                    background: '#f3f4f6',
+                                                                    background: 'var(--gray-100)',
                                                                     borderRadius: '6px',
                                                                     fontSize: '13px',
                                                                     fontWeight: '500',
-                                                                    color: '#374151'
+                                                                    color: 'var(--gray-700)'
                                                                 }}>
                                                                     {user.role || getRoleName(user.role_id)}
                                                                 </span>
@@ -372,16 +374,16 @@ export default function UsersPage() {
                                                                         fontWeight: '600',
                                                                         color: '#0891b2',
                                                                         padding: '4px 8px',
-                                                                        background: '#ecfeff',
+                                                                        background: 'var(--secondary-50)',
                                                                         borderRadius: '4px',
-                                                                        border: '1px solid #a5f3fc'
+                                                                        border: '1px solid var(--border-color)'
                                                                     }}>
                                                                         {user.assigned_ip}
                                                                     </span>
                                                                 ) : (
                                                                     <span style={{
                                                                         fontSize: '13px',
-                                                                        color: '#9ca3af',
+                                                                        color: 'var(--gray-400)',
                                                                         fontStyle: 'italic'
                                                                     }}>
                                                                         Not assigned
@@ -404,9 +406,9 @@ export default function UsersPage() {
                                                                                 title="Assign IP"
                                                                                 style={{
                                                                                     padding: '8px',
-                                                                                    border: '1px solid #d1d5db',
+                                                                                    border: '1px solid var(--border-color)',
                                                                                     borderRadius: '6px',
-                                                                                    background: 'white',
+                                                                                    background: 'var(--card-bg)',
                                                                                     cursor: 'pointer',
                                                                                     color: '#0891b2',
                                                                                     display: 'inline-flex',
@@ -435,7 +437,7 @@ export default function UsersPage() {
                                                                     ) : (
                                                                         <span style={{
                                                                             fontSize: '13px',
-                                                                            color: '#9ca3af',
+                                                                            color: 'var(--gray-400)',
                                                                             fontStyle: 'italic',
                                                                             padding: '8px'
                                                                         }}>
@@ -472,7 +474,7 @@ export default function UsersPage() {
                                                             padding: '8px 12px',
                                                             border: '1px solid var(--gray-300)',
                                                             borderRadius: '6px',
-                                                            background: currentPage === 1 ? 'var(--gray-100)' : 'white',
+                                                            background: currentPage === 1 ? 'var(--gray-100)' : 'var(--card-bg)',
                                                             color: currentPage === 1 ? 'var(--gray-400)' : 'var(--gray-700)',
                                                             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                                                             fontSize: '14px',
@@ -498,7 +500,7 @@ export default function UsersPage() {
                                                                             padding: '8px 12px',
                                                                             border: '1px solid var(--gray-300)',
                                                                             borderRadius: '6px',
-                                                                            background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                            background: currentPage === i ? 'var(--primary-500)' : 'var(--card-bg)',
                                                                             color: currentPage === i ? 'white' : 'var(--gray-700)',
                                                                             cursor: 'pointer',
                                                                             fontSize: '14px',
@@ -521,7 +523,7 @@ export default function UsersPage() {
                                                                         padding: '8px 12px',
                                                                         border: '1px solid var(--gray-300)',
                                                                         borderRadius: '6px',
-                                                                        background: currentPage === 1 ? 'var(--primary-500)' : 'white',
+                                                                        background: currentPage === 1 ? 'var(--primary-500)' : 'var(--card-bg)',
                                                                         color: currentPage === 1 ? 'white' : 'var(--gray-700)',
                                                                         cursor: 'pointer',
                                                                         fontSize: '14px',
@@ -553,7 +555,7 @@ export default function UsersPage() {
                                                                             padding: '8px 12px',
                                                                             border: '1px solid var(--gray-300)',
                                                                             borderRadius: '6px',
-                                                                            background: currentPage === i ? 'var(--primary-500)' : 'white',
+                                                                            background: currentPage === i ? 'var(--primary-500)' : 'var(--card-bg)',
                                                                             color: currentPage === i ? 'white' : 'var(--gray-700)',
                                                                             cursor: 'pointer',
                                                                             fontSize: '14px',
@@ -582,7 +584,7 @@ export default function UsersPage() {
                                                                         padding: '8px 12px',
                                                                         border: '1px solid var(--gray-300)',
                                                                         borderRadius: '6px',
-                                                                        background: currentPage === totalPages ? 'var(--primary-500)' : 'white',
+                                                                        background: currentPage === totalPages ? 'var(--primary-500)' : 'var(--card-bg)',
                                                                         color: currentPage === totalPages ? 'white' : 'var(--gray-700)',
                                                                         cursor: 'pointer',
                                                                         fontSize: '14px',
@@ -606,7 +608,7 @@ export default function UsersPage() {
                                                             padding: '8px 12px',
                                                             border: '1px solid var(--gray-300)',
                                                             borderRadius: '6px',
-                                                            background: currentPage === totalPages ? 'var(--gray-100)' : 'white',
+                                                            background: currentPage === totalPages ? 'var(--gray-100)' : 'var(--card-bg)',
                                                             color: currentPage === totalPages ? 'var(--gray-400)' : 'var(--gray-700)',
                                                             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                                                             fontSize: '14px',

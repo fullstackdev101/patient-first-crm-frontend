@@ -12,13 +12,13 @@
 .reports-header h1 {
     font-size: 2rem;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
 .reports-subtitle {
     font-size: 1rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     margin: 0;
 }
 
@@ -31,7 +31,7 @@
 }
 
 .kpi-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -49,22 +49,22 @@
 
 .kpi-card.kpi-primary {
     border-left-color: #3b82f6;
-    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-50) 100%);
 }
 
 .kpi-card.kpi-success {
     border-left-color: #22c55e;
-    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--primary-50) 100%);
 }
 
 .kpi-card.kpi-danger {
     border-left-color: #ef4444;
-    background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--rose-100) 100%);
 }
 
 .kpi-card.kpi-warning {
     border-left-color: #eab308;
-    background: linear-gradient(135deg, #ffffff 0%, #fefce8 100%);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--amber-100) 100%);
 }
 
 .kpi-icon {
@@ -79,26 +79,26 @@
 .kpi-value {
     font-size: 2rem;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--text-primary);
     line-height: 1.2;
 }
 
 .kpi-label {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #4b5563;
+    color: var(--gray-600);
     margin-top: 0.25rem;
 }
 
 .kpi-sublabel {
     font-size: 0.75rem;
-    color: #9ca3af;
+    color: var(--gray-400);
     margin-top: 0.125rem;
 }
 
 /* Table Container */
 .reports-table-container {
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -126,30 +126,30 @@
 }
 
 .reports-table tbody tr {
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--border-color);
     transition: background-color 0.15s;
 }
 
 .reports-table tbody tr:hover {
-    background-color: #f9fafb;
+    background-color: var(--gray-50);
 }
 
 .reports-table tbody tr:nth-child(even) {
-    background-color: #fafafa;
+    background-color: var(--gray-50);
 }
 
 .reports-table tbody tr:nth-child(even):hover {
-    background-color: #f3f4f6;
+    background-color: var(--gray-100);
 }
 
 .reports-table tbody td {
     padding: 1rem;
-    color: #374151;
+    color: var(--text-primary);
 }
 
 .reports-table tfoot {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    border-top: 2px solid #d1d5db;
+    background: linear-gradient(135deg, var(--gray-100) 0%, var(--gray-200) 100%);
+    border-top: 2px solid var(--gray-300);
 }
 
 .reports-table tfoot td {
@@ -159,7 +159,7 @@
 
 .total-row td {
     font-weight: 700;
-    color: #1f2937;
+    color: var(--text-primary);
 }
 
 /* Badges */
@@ -199,7 +199,7 @@
 
 .team-name {
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-primary);
 }
 
 /* Responsive Design */

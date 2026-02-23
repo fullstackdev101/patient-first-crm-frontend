@@ -625,7 +625,8 @@ export default function LeadsPage() {
                       border: "1px solid var(--gray-300)",
                       borderRadius: "8px",
                       fontSize: "14px",
-                      background: "white",
+                      background: "var(--card-bg)",
+                      color: "var(--text-primary)",
                     }}
                     value={statusFilter || "All"}
                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -661,7 +662,8 @@ export default function LeadsPage() {
                       border: "1px solid var(--gray-300)",
                       borderRadius: "8px",
                       fontSize: "14px",
-                      background: "white",
+                      background: "var(--card-bg)",
+                      color: "var(--text-primary)",
                     }}
                     value={teamFilter || "All"}
                     onChange={(e) => setTeamFilter(e.target.value)}
@@ -699,7 +701,7 @@ export default function LeadsPage() {
                       borderRadius: "6px",
                       fontSize: "13px",
                       fontWeight: "500",
-                      background: "white",
+                      background: "var(--card-bg)",
                       color: "var(--primary-500)",
                       cursor: "pointer",
                       transition: "all 0.2s",
@@ -711,7 +713,7 @@ export default function LeadsPage() {
                       e.currentTarget.style.color = "white";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "white";
+                      e.currentTarget.style.background = "var(--card-bg)";
                       e.currentTarget.style.color = "var(--primary-500)";
                     }}
                   >
@@ -738,10 +740,10 @@ export default function LeadsPage() {
                         padding: "9px 12px",
                         border: "1px solid var(--gray-300)",
                         borderRadius: "6px",
-                        fontSize: "14px",
-                        background: "white",
-                        height: "40px",
-                      }}
+                        fontSize: "14px",                      background: "var(--card-bg)",
+                      color: "var(--text-primary)",
+                      height: "40px",
+                    }}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -766,7 +768,8 @@ export default function LeadsPage() {
                         border: "1px solid var(--gray-300)",
                         borderRadius: "6px",
                         fontSize: "14px",
-                        background: "white",
+                        background: "var(--card-bg)",
+                        color: "var(--text-primary)",
                         height: "40px",
                       }}
                     />
@@ -784,14 +787,14 @@ export default function LeadsPage() {
                         borderRadius: "6px",
                         fontSize: "13px",
                         fontWeight: "500",
-                        background: "white",
-                        color: "var(--gray-600)",
-                        cursor: "pointer",
-                        whiteSpace: "nowrap",
-                        height: "40px",
-                      }}
-                    >
-                      Clear Dates
+                      background: "var(--card-bg)",
+                      color: "var(--gray-600)",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      height: "40px",
+                    }}
+                  >
+                    Clear Dates
                     </button>
                   )}
                 </div>
@@ -1094,11 +1097,12 @@ export default function LeadsPage() {
                           border: "1px solid var(--gray-300)",
                           borderRadius: "6px",
                           fontSize: "14px",
-                          background: "white",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <option value={25}>25</option>
+                        background: "var(--card-bg)",
+                        color: "var(--text-primary)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value={25}>25</option>
                         <option value={50}>50</option>
                         <option value={100}>100</option>
                         <option value={250}>250</option>
@@ -1124,7 +1128,7 @@ export default function LeadsPage() {
                         border: "1px solid var(--gray-300)",
                         borderRadius: "6px",
                         background:
-                          currentPage === 1 ? "var(--gray-100)" : "white",
+                          currentPage === 1 ? "var(--gray-100)" : "var(--card-bg)",
                         color:
                           currentPage === 1
                             ? "var(--gray-400)"
@@ -1156,7 +1160,7 @@ export default function LeadsPage() {
                                 background:
                                   currentPage === i
                                     ? "var(--primary-500)"
-                                    : "white",
+                                    : "var(--card-bg)",
                                 color:
                                   currentPage === i
                                     ? "white"
@@ -1185,7 +1189,7 @@ export default function LeadsPage() {
                               background:
                                 currentPage === 1
                                   ? "var(--primary-500)"
-                                  : "white",
+                                  : "var(--card-bg)",
                               color:
                                 currentPage === 1 ? "white" : "var(--gray-700)",
                               cursor: "pointer",
@@ -1232,7 +1236,7 @@ export default function LeadsPage() {
                                 background:
                                   currentPage === i
                                     ? "var(--primary-500)"
-                                    : "white",
+                                    : "var(--card-bg)",
                                 color:
                                   currentPage === i
                                     ? "white"
@@ -1275,7 +1279,7 @@ export default function LeadsPage() {
                               background:
                                 currentPage === totalPages
                                   ? "var(--primary-500)"
-                                  : "white",
+                                  : "var(--card-bg)",
                               color:
                                 currentPage === totalPages
                                   ? "white"
@@ -1306,7 +1310,7 @@ export default function LeadsPage() {
                         background:
                           currentPage === totalPages
                             ? "var(--gray-100)"
-                            : "white",
+                            : "var(--card-bg)",
                         color:
                           currentPage === totalPages
                             ? "var(--gray-400)"
