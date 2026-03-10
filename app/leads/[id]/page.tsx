@@ -254,7 +254,7 @@ export default function EditLeadPage() {
       const currentUser = useAuthStore.getState().user;
       if (response.data.success && currentUser) {
         if (
-          (currentUser.role_id === 4 || currentUser.role_id === 5) &&
+          (currentUser.role_id === 4 || currentUser.role_id === 5 || currentUser.role_id === 7) &&
           (formData.lead_manual_status === "approved" ||
             formData.lead_manual_status === "rejected")
         ) {
@@ -1231,7 +1231,9 @@ export default function EditLeadPage() {
                         >
                           <option value="">-- Select Status --</option>
                           <option value="approved">Approved</option>
-                          <option value="rejected">Rejected</option>
+                          {user?.role_id !== 7 && (
+                            <option value="rejected">Rejected</option>
+                          )}
                         </select>
                         <div
                           style={{

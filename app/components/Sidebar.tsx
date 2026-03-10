@@ -57,8 +57,26 @@ export default function Sidebar() {
         }
 
         // Agent (3), License Agent (4), and QA Review (5) can access Dashboard and Leads only
-        if (userRoleId === 3 || userRoleId === 4 || userRoleId === 5) {
+        if (userRoleId === 2 || userRoleId === 3 || userRoleId === 4 || userRoleId === 5) {
             const hasAccess = module === 'dashboard' || module === 'leads';
+            console.log(`🔍 Sidebar - Role ID ${userRoleId}, module ${module}: ${hasAccess ? 'ALLOWED' : 'DENIED'}`);
+            return hasAccess;
+        }
+
+        if (userRoleId === 7) {
+            const hasAccess = module === 'dashboard' || module === 'leads';
+            console.log(`🔍 Sidebar - Role ID ${userRoleId}, module ${module}: ${hasAccess ? 'ALLOWED' : 'DENIED'}`);
+            return hasAccess;
+        }
+
+        if (userRoleId === 1) {
+            const hasAccess = module === 'dashboard' || module === 'leads' || module === 'users' || module === 'teams' || module === 'ip-access';
+            console.log(`🔍 Sidebar - Role ID ${userRoleId}, module ${module}: ${hasAccess ? 'ALLOWED' : 'DENIED'}`);
+            return hasAccess;
+        }
+
+        if (userRoleId === 6) {
+            const hasAccess = module === 'dashboard' || module === 'leads' || module === 'users' || module === 'teams' || module === 'ip-access';
             console.log(`🔍 Sidebar - Role ID ${userRoleId}, module ${module}: ${hasAccess ? 'ALLOWED' : 'DENIED'}`);
             return hasAccess;
         }
@@ -143,6 +161,16 @@ export default function Sidebar() {
                                     </Link>
                                 )}
 
+                                {/* Validator Leads - Validator (7) */}
+                                {(userRoleId === 7) && (
+                                    <Link
+                                        href="/leads"
+                                        className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
+                                    >
+                                        <span>Validator Approvals</span>
+                                    </Link>
+                                )}
+
                                 {/* LA Leads - License Agent only (role_id: 4) */}
                                 {userRoleId === 4 && (
                                     <Link
@@ -169,7 +197,7 @@ export default function Sidebar() {
                 )}
 
                 {/* Teams - Super Admin (1) and QA Manager (6) only */}
-                {(userRoleId === 1 || userRoleId === 6) && (
+                {canAccessModule('teams') && (
                     <Link href="/teams" className={`nav-item ${isActive('/teams') ? 'active' : ''}`}>
                         <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
@@ -181,7 +209,7 @@ export default function Sidebar() {
                 )}
 
                 {/* Reports - Super Admin (1), and QA Manager (6) only */}
-                {(userRoleId === 1 || userRoleId === 6) && (
+                {canAccessModule('reports') && (
                     <div className="nav-item-group">
                         <button
                             className={`nav-item nav-item-toggle ${pathname.startsWith('/reports') ? 'active' : ''}`}
