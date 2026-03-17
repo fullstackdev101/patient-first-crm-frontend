@@ -56,7 +56,7 @@ export default function DashboardPage() {
     const metrics = stats ? [
         { title: 'Total Leads', value: stats.totalLeads.toString(), iconColor: '#14b8a6', icon: '👥' },
         { title: 'Conversion Rate', value: `${conversionRate}%`, iconColor: '#06b6d4', icon: '📈' },
-        { title: 'Pending', value: stats.qaReview.toString(), iconColor: '#f59e0b', icon: '⏳' },
+        // { title: 'Pending', value: stats.qaReview.toString(), iconColor: '#f59e0b', icon: '⏳' },
         { title: 'Approved', value: stats.approved.toString(), iconColor: '#10b981', icon: '✅' },
         { title: 'Rejected', value: stats.rejected.toString(), iconColor: '#ef4444', icon: '❌' },
     ] : [];

@@ -211,17 +211,19 @@ export default function ViewLeadPage() {
                                     <div className="card-content" style={{ padding: '24px' }}>
                                         < div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                             <ReadOnlyField label="First Name" value={currentLead.first_name} />
-                                            < ReadOnlyField label="Last Name" value={currentLead.last_name} />
                                             < ReadOnlyField label="Middle Initial" value={currentLead.middle_initial} />
+                                            < ReadOnlyField label="Last Name" value={currentLead.last_name} />
                                             < ReadOnlyField label="Date of Birth" value={currentLead.date_of_birth} />
                                             < ReadOnlyField label="Phone" value={currentLead.phone ? maskPhone(currentLead.phone) : ''} />
                                             < ReadOnlyField label="Email" value={currentLead.email} />
                                             < ReadOnlyField label="State of Birth" value={currentLead.state_of_birth} />
                                             < ReadOnlyField label="SSN" value={currentLead.ssn ? maskSSN(currentLead.ssn) : ''} />
+                                            <ReadOnlyField label="Street Address" value={currentLead.address} />
+                                            <ReadOnlyField label="Apartment / Lot Number" value={currentLead.apt_lot} />
+                                            <ReadOnlyField label="City" value={currentLead.city} />
+                                            <ReadOnlyField label="State" value={currentLead.state} />
+                                            <ReadOnlyField label="Zipcode" value={currentLead.zipcode} />
                                         </div >
-                                        <div style={{ marginTop: '20px' }}>
-                                            <ReadOnlyField label="Address" value={currentLead.address} />
-                                        </div>
                                     </div >
                                 </div >
 
@@ -507,8 +509,10 @@ export default function ViewLeadPage() {
                                                                             case 4: // Approved
                                                                                 return 'var(--primary-100)'; // Light green
                                                                             case 5: // Pending
-                                                                                return 'var(--amber-100)'; // Light yellow
+                                                                                return 'var(--primary-100)'; // Light green //'var(--amber-100)'; // Light yellow
                                                                             case 7: // Rejected
+                                                                                return 'var(--rose-100)'; // Light red
+                                                                            case 11: // DNC
                                                                                 return 'var(--rose-100)'; // Light red
                                                                             case 8: // License Agent
                                                                                 return 'var(--secondary-50)'; // Light blue

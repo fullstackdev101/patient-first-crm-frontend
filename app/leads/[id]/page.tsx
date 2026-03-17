@@ -57,6 +57,10 @@ function buildFormDataFromLead(
     phone: currentLead.phone ? maskPhone(currentLead.phone) : "",
     email: currentLead.email || "",
     address: currentLead.address || "",
+    apt_lot: currentLead.apt_lot || "",
+    city: currentLead.city || "",
+    state: currentLead.state || "",
+    zipcode: currentLead.zipcode || "",
     state_of_birth: currentLead.state_of_birth || "",
     ssn: currentLead.ssn ? maskSSN(currentLead.ssn) : "",
     height: currentLead.height || "",
@@ -373,7 +377,7 @@ export default function EditLeadPage() {
       </ProtectedRoute>
     );
   }
-
+  const currentUser = useAuthStore.getState().user;
   return (
     <ProtectedRoute>
       {/* Full-Page Loading Overlay */}
@@ -573,42 +577,46 @@ export default function EditLeadPage() {
                           gap: "16px",
                         }}
                       >
-                        <div className="form-group">
-                          <label className="form-label">First Name *</label>
-                          <input
-                            type="text"
-                            className="form-input"
-                            required
-                            value={formData.first_name}
-                            onChange={(e) =>
-                              change("first_name", e.target.value)
-                            }
-                          />
+                        {/* Full Name Row - Spanning 2 columns to fit 3 fields in one line */}
+                        <div style={{ gridColumn: "span 2", display: "grid", gridTemplateColumns: "2fr 1fr 2fr", gap: "12px" }}>
+                          <div className="form-group">
+                            <label className="form-label">First Name *</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              required
+                              value={formData.first_name}
+                              onChange={(e) =>
+                                change("first_name", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Middle Initial</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              maxLength={1}
+                              value={formData.middle_initial}
+                              onChange={(e) =>
+                                change("middle_initial", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Last Name *</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              required
+                              value={formData.last_name}
+                              onChange={(e) =>
+                                change("last_name", e.target.value)
+                              }
+                            />
+                          </div>
                         </div>
-                        <div className="form-group">
-                          <label className="form-label">Last Name *</label>
-                          <input
-                            type="text"
-                            className="form-input"
-                            required
-                            value={formData.last_name}
-                            onChange={(e) =>
-                              change("last_name", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">Middle Initial</label>
-                          <input
-                            type="text"
-                            className="form-input"
-                            maxLength={1}
-                            value={formData.middle_initial}
-                            onChange={(e) =>
-                              change("middle_initial", e.target.value)
-                            }
-                          />
-                        </div>
+
                         <div className="form-group">
                           <label className="form-label">
                             Date of Birth{" "}
@@ -640,6 +648,44 @@ export default function EditLeadPage() {
                             }
                           />
                         </div>
+                        {/* Address Section */}
+                        <div className="form-group">
+                          <label className="form-label">Street Address</label>
+                          <input type="text" className="form-input" value={formData.address}
+                            onChange={(e) => change("address", e.target.value)} />
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">Apartment / Lot Number *</label>
+                          <input type="text" className="form-input" required value={formData.apt_lot}
+                            onChange={(e) => change("apt_lot", e.target.value)} />
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">City</label>
+                          <input type="text" className="form-input" value={formData.city}
+                            onChange={(e) => change("city", e.target.value)} />
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">State</label>
+                          <select
+                            className="form-input"
+                            value={formData.state}
+                            onChange={(e) => change("state", e.target.value)}
+                          >
+                            <option value="">Select State</option>
+                            {["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"].map(st => (
+                              <option key={st} value={st}>{st}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">Zipcode *</label>
+                          <input type="text" className="form-input" required value={formData.zipcode}
+                            onChange={(e) => change("zipcode", e.target.value)} />
+                        </div>
                         <div className="form-group">
                           <label className="form-label">Email *</label>
                           <input
@@ -652,33 +698,7 @@ export default function EditLeadPage() {
                           />
                         </div>
                         <div
-                          className="form-group"
-                          style={{ gridColumn: "span 2" }}
-                        >
-                          <label className="form-label">Address *</label>
-                          <input
-                            type="text"
-                            className="form-input"
-                            required
-                            value={formData.address}
-                            onChange={(e) => change("address", e.target.value)}
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">State of Birth *</label>
-                          <input
-                            type="text"
-                            className="form-input"
-                            required
-                            value={formData.state_of_birth}
-                            onChange={(e) =>
-                              change("state_of_birth", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div
-                          className={`form-group ${errors.ssn ? "error" : ""}`}
-                        >
+                          className={`form-group ${errors.ssn ? "error" : ""}`}>
                           <label className="form-label">
                             Social Security Number{" "}
                             <span className="required-indicator">*</span>
@@ -691,6 +711,18 @@ export default function EditLeadPage() {
                             value={formData.ssn}
                             onChange={(e) =>
                               change("ssn", maskSSN(e.target.value))
+                            }
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">State of Birth *</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            required
+                            value={formData.state_of_birth}
+                            onChange={(e) =>
+                              change("state_of_birth", e.target.value)
                             }
                           />
                         </div>
@@ -742,7 +774,7 @@ export default function EditLeadPage() {
                             onChange={(e) => change("weight", e.target.value)}
                           />
                         </div>
-                        <div className="form-group">
+                        {/* <div className="form-group">
                           <label className="form-label">
                             Insurance Provider
                           </label>
@@ -754,6 +786,27 @@ export default function EditLeadPage() {
                               change("insurance_provider", e.target.value)
                             }
                           />
+                        </div> */}
+                        {/* Carriers Dropdown */}
+                        <div className="form-group">
+                          <label className="form-label">Carriers</label>
+                          <select
+                            className="form-input"
+                            required
+                            value={formData.insurance_provider}
+                            onChange={(e) => change("insurance_provider", e.target.value)}
+                          >
+                            <option value="">Select Carrier</option>
+                            <option value="TransAmerica">TransAmerica</option>
+                            <option value="AMAM">AMAM</option>
+                            <option value="RNA">RNA</option>
+                            <option value="Americo">Americo</option>
+                            <option value="Aetna">Aetna</option>
+                            <option value="MOO">MOO</option>
+                            <option value="Corbridge">Corbridge</option>
+                            <option value="CICA">CICA</option>
+                            <option value="Others">Others</option>
+                          </select>
                         </div>
                         <div className="form-group">
                           <label className="form-label">Policy Number</label>
@@ -1230,10 +1283,19 @@ export default function EditLeadPage() {
                           }}
                         >
                           <option value="">-- Select Status --</option>
-                          <option value="approved">Approved</option>
-                          {user?.role_id !== 7 && (
-                            <option value="rejected">Rejected</option>
+                          {/* Conditional Logic for Role ID 4 */}
+                          {currentUser?.role_id === 4 ? (
+                            <>
+                              <option value="approved_level">Approved Level</option>
+                              <option value="approved_gi">Approved GI</option>
+                            </>
+                          ) : (
+                            <option value="approved">Approved</option>
                           )}
+
+                          {/* Standard Options */}
+                          <option value="rejected">Rejected</option>
+                          <option value="dnc">DNC</option>
                         </select>
                         <div
                           style={{
@@ -1341,6 +1403,7 @@ export default function EditLeadPage() {
                           8: { bg: "var(--secondary-50)", text: "var(--secondary-600)" },
                           3: { bg: "var(--purple-100)", text: "var(--purple-800)" },
                           5: { bg: "var(--primary-100)", text: "var(--primary-900)" },
+                          11: { bg: "var(--primary-100)", text: "var(--primary-900)" },
                           4: { bg: "var(--amber-100)", text: "var(--amber-800)" },
                           7: { bg: "var(--rose-100)", text: "var(--rose-800)" },
                           9: { bg: "var(--rose-100)", text: "var(--rose-800)" },
@@ -1421,7 +1484,7 @@ export default function EditLeadPage() {
                             marginBottom: "4px",
                           }}
                         >
-                          Assigned to
+                          Created By
                         </label>
                         <div
                           style={{
@@ -1430,7 +1493,7 @@ export default function EditLeadPage() {
                             fontWeight: "500",
                           }}
                         >
-                          {currentLead.assigned_user_name || "Unassigned"}
+                          {currentLead.lead_creator_name || "Unassigned"}
                         </div>
                       </div>
                       <div>

@@ -11,12 +11,16 @@ interface Lead {
     phone: string;
     email: string;
     address: string;
+    apt_lot: string;
+    city: string;
+    state: string;
+    zipcode: string;
     state_of_birth: string;
     ssn: string;
     status: number;
     assigned_agent?: string;
     assigned_to?: number;
-    assigned_user_name?: string; // Username of assigned user
+    lead_creator_name?: string; // Username of assigned user
     created_at: string;
     height?: string;
     weight?: string;
@@ -72,6 +76,12 @@ interface LeadsState {
     searchQuery: string;
     statusFilter: string;
 
+    // Sidebar nav selection — null means "All", string is a single status name,
+    // string[] is multiple status names (future multi-status case)
+    selectedNavOption: string | string[] | null;
+    // Resolved status IDs when selectedNavOption maps to multiple statuses
+    statusIds: string[];
+
     // Actions
     fetchLeads: () => Promise<void>;
     fetchLeadById: (id: string) => Promise<void>;
@@ -83,6 +93,8 @@ interface LeadsState {
     setSearchQuery: (query: string) => void;
     setStatusFilter: (status: string) => void;
     setCurrentPage: (page: number) => void;
+    setSelectedNavOption: (option: string | string[] | null) => void;
+    setStatusIds: (ids: string[]) => void;
     clearError: () => void;
 }
 
@@ -98,6 +110,8 @@ export const useLeadsStore = create<LeadsState>((set, get) => ({
 
     searchQuery: '',
     statusFilter: 'All',
+    selectedNavOption: null,
+    statusIds: [],
 
     fetchLeads: async () => {
         set({ isLoading: true, error: null });
@@ -225,6 +239,14 @@ export const useLeadsStore = create<LeadsState>((set, get) => ({
 
     setCurrentPage: (page: number) => {
         set({ currentPage: page });
+    },
+
+    setSelectedNavOption: (option: string | string[] | null) => {
+        set({ selectedNavOption: option, currentPage: 1 });
+    },
+
+    setStatusIds: (ids: string[]) => {
+        set({ statusIds: ids });
     },
 
     clearError: () => {

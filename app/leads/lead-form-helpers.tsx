@@ -15,6 +15,10 @@ export type FormData = {
     phone: string;
     email: string;
     address: string;
+    apt_lot: string;
+    city: string;
+    state: string;
+    zipcode: string;
     state_of_birth: string;
     ssn: string;
     height: string;
@@ -64,6 +68,10 @@ export const INITIAL_FORM_DATA: FormData = {
     phone: "",
     email: "",
     address: "",
+    apt_lot: "",
+    city: "",
+    state: "",
+    zipcode: "",
     state_of_birth: "",
     ssn: "",
     height: "",

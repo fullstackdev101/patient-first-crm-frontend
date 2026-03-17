@@ -19,6 +19,12 @@ export default function LeadsPage() {
   const router = useRouter();
   const { user: currentUser } = useAuthStore();
   const { leads, isLoading, error, totalLeads } = useLeadsStore();
+  const {
+    selectedNavOption,
+    setSelectedNavOption,
+    statusIds,
+    setStatusIds,
+  } = useLeadsStore();
 
   // Local state for filters
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -31,20 +37,56 @@ export default function LeadsPage() {
     string | null
   >(null);
 
-  // Role-based automatic status filtering
+  // // Role-based automatic status filtering
+  // useEffect(() => {
+  //   const userRoleId = currentUser?.role_id;
+
+  //   // QA Reviewer (5) or QA Manager (6) - auto-filter to QA Review + New statuses
+  //   if (userRoleId === 5 || userRoleId === 6) {
+  //     // Will be set after statuses are fetched
+  //   }
+
+  //   // License Agent (4) - auto-filter to License Agent status
+  //   if (userRoleId === 4 && licenseAgentStatusId) {
+  //     setStatusFilter(licenseAgentStatusId);
+  //   }
+  // }, [currentUser, licenseAgentStatusId]);
+
+  // Resolve selectedNavOption (status name(s)) → status IDs once statuses are loaded.
+  // null means "no sidebar intent set yet" — skip to avoid overriding role-based filters.
   useEffect(() => {
-    const userRoleId = currentUser?.role_id;
+    // Only act when the user has explicitly clicked a sidebar nav option
+    if (selectedNavOption === null) return;
+    if (!statuses.length) return;
 
-    // QA Reviewer (5) or QA Manager (6) - auto-filter to QA Review + New statuses
-    if (userRoleId === 5 || userRoleId === 6) {
-      // Will be set after statuses are fetched
+    // "__all__" sentinel = "All Leads" button clicked — clear any status filter
+    if (selectedNavOption === "__all__") {
+      setStatusFilter("All");
+      setStatusIds([]);
+      return;
     }
 
-    // License Agent (4) - auto-filter to License Agent status
-    if (userRoleId === 4 && licenseAgentStatusId) {
-      setStatusFilter(licenseAgentStatusId);
+    const keys = Array.isArray(selectedNavOption)
+      ? selectedNavOption
+      : [selectedNavOption];
+
+    const matched = statuses.filter((s: any) => keys.includes(s.status_name));
+    const matchedIds = matched.map((s: any) => s.id.toString());
+
+    if (matchedIds.length === 0) {
+      // No matching status found in DB — fall back to All
+      setStatusFilter("All");
+      setStatusIds([]);
+    } else if (matchedIds.length === 1) {
+      // Single status — use existing ?status= param
+      setStatusFilter(matchedIds[0]);
+      setStatusIds([]);
+    } else {
+      // Multi-status — signal the fetch effect and store the IDs
+      setStatusFilter("__multi__");
+      setStatusIds(matchedIds);
     }
-  }, [currentUser, licenseAgentStatusId]);
+  }, [selectedNavOption, statuses]);
 
   // Show scroll-to-top button after scrolling down 300px
   useEffect(() => {
@@ -70,8 +112,13 @@ export default function LeadsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(500);
 
   // Reset to page 1 when filters change
+  // Guard: only call setCurrentPage(1) if we are NOT already on page 1.
+  // Calling setState with the same value still triggers a re-render in React,
+  // which causes fetchWithFilters to fire a second (duplicate) API call.
   useEffect(() => {
-    setCurrentPage(1);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
   }, [
     searchQuery,
     statusFilter,
@@ -106,41 +153,56 @@ export default function LeadsPage() {
             setLicenseAgentStatusId(licenseAgentStatus.id.toString());
           }
 
-          // Role-based status filtering
-          if (userRoleId === 5) {
-            // QA roles: show only QA Review and New statuses
-            const qaStatuses = allStatuses.filter(
-              (status: any) =>
-                status.status_name === "QA Review" ||
-                status.status_name === "New",
-            );
-            setStatuses(qaStatuses);
-            // Set to "All" to show both New and QA Review leads
-            setStatusFilter("All");
-          } else if (userRoleId === 4) {
-            // LA role: show only License Agent status
-            const laStatuses = allStatuses.filter(
-              (status: any) => status.status_name === "License Agent",
-            );
-            setStatuses(laStatuses);
-            // Auto-select License Agent status
-            if (licenseAgentStatus) {
+          if (userRoleId === 5 || userRoleId === 4) {
+            setStatuses(allStatuses);
+            if (licenseAgentStatus && selectedNavOption === null) {
               setStatusFilter(licenseAgentStatus.id.toString());
             }
           } else {
-            // Super Admin and others: show statuses with IDs 5, 6, or 7
-            // const filteredStatuses = allStatuses.filter((status: any) =>
-            //   [5, 6, 7].includes(status.id),
-            // );
             setStatuses(allStatuses);
           }
+
+          // // Role-based status filtering
+          // if (userRoleId === 5) {
+          //   // QA roles: show only QA Review and New statuses
+          //   // const qaStatuses = allStatuses.filter(
+          //   //   (status: any) =>
+          //   //     status.status_name === "QA Review" ||
+          //   //     status.status_name === "New",
+          //   // );
+          //   // setStatuses(qaStatuses);
+          //   // Set to "All" to show both New and QA Review leads
+
+          //   // Give them all statuses so sidebar clicks can resolve the specific status IDs
+          //   setStatuses(allStatuses);
+          //   // Optionally, handle their default startup view if you want them 
+          //   // to only see QA Review / New when they first log in.
+          //   // setStatusFilter("All");
+          // } else if (userRoleId === 4) {
+          //   setStatuses(allStatuses);
+          //   // LA role: show only License Agent status
+          //   // const laStatuses = allStatuses.filter(
+          //   //   (status: any) => status.status_name === "License Agent",
+          //   // );
+          //   // setStatuses(laStatuses);
+          //   // Auto-select License Agent status
+          //   if (licenseAgentStatus) {
+          //     setStatusFilter(licenseAgentStatus.id.toString());
+          //   }
+          // } else {
+          //   // Super Admin and others: show statuses with IDs 5, 6, or 7
+          //   // const filteredStatuses = allStatuses.filter((status: any) =>
+          //   //   [5, 6, 7].includes(status.id),
+          //   // );
+          //   setStatuses(allStatuses);
+          // }
         }
       } catch (error) {
         console.error("Error fetching statuses:", error);
       }
     };
     fetchStatuses();
-  }, [currentUser]);
+  }, [currentUser?.role_id]);
 
   // Fetch all users from API
   useEffect(() => {
@@ -176,8 +238,18 @@ export default function LeadsPage() {
         console.log("📄 Fetching page:", currentPage);
 
         if (searchQuery) params.append("search", searchQuery);
-        if (statusFilter && statusFilter !== "All")
+
+        // If it's a multi-status search but the statusIds array hasn't updated yet,
+        // abort the fetch. The effect will re-trigger a microsecond later 
+        // when statusIds finishes updating.
+
+        // Handle status filter: single, multi, or all
+        if (statusFilter && statusFilter !== "All" && statusFilter !== "__multi__") {
           params.append("status", statusFilter);
+        } else if (statusFilter === "__multi__" && statusIds.length > 0) {
+          // Multi-status: send comma-separated IDs as status_ids
+          params.append("status_ids", statusIds.join(","));
+        }
         if (assignedUserFilter && assignedUserFilter !== "All")
           params.append("created_by", assignedUserFilter);
         if (teamFilter && teamFilter !== "All")
@@ -203,6 +275,14 @@ export default function LeadsPage() {
 
         console.log("🔍 API Request URL:", `/leads?${params.toString()}`);
 
+        if (statusFilter === "__multi__" && statusIds.length === 0) {
+          return;
+        }
+
+        if (selectedNavOption !== null && selectedNavOption !== "__all__" && statuses.length === 0) {
+          return;
+        }
+
         const response = await axios.get(`/leads?${params}`);
 
         if (response.data.success) {
@@ -224,6 +304,7 @@ export default function LeadsPage() {
   }, [
     searchQuery,
     statusFilter,
+    statusIds,
     assignedUserFilter,
     teamFilter,
     startDate,
@@ -275,8 +356,10 @@ export default function LeadsPage() {
       const params = new URLSearchParams();
 
       if (searchQuery) params.append("search", searchQuery);
-      if (statusFilter && statusFilter !== "All")
+      if (statusFilter && statusFilter !== "All" && statusFilter !== "__multi__")
         params.append("status", statusFilter);
+      else if (statusFilter === "__multi__" && statusIds.length > 0)
+        params.append("status_ids", statusIds.join(","));
       if (assignedUserFilter && assignedUserFilter !== "All")
         params.append("created_by", assignedUserFilter);
       if (teamFilter && teamFilter !== "All")
@@ -439,8 +522,10 @@ export default function LeadsPage() {
         });
 
         if (searchQuery) params.append("search", searchQuery);
-        if (statusFilter && statusFilter !== "All")
+        if (statusFilter && statusFilter !== "All" && statusFilter !== "__multi__")
           params.append("status", statusFilter);
+        else if (statusFilter === "__multi__" && statusIds.length > 0)
+          params.append("status_ids", statusIds.join(","));
         if (assignedUserFilter && assignedUserFilter !== "All")
           params.append("assigned_to", assignedUserFilter);
         if (teamFilter && teamFilter !== "All")
@@ -575,70 +660,76 @@ export default function LeadsPage() {
             <div className="card" style={{ marginBottom: "24px" }}>
               <div className="card-content" style={{ padding: "16px 24px" }}>
                 {/* First Row: Search, Status, Assigned User, Team */}
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "2fr 1fr 1fr",
-                    gap: "16px",
-                    marginBottom: "16px",
-                  }}
-                >
-                  <div className="search-box">
-                    <svg
-                      width="18"
-                      height="18"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                {currentUser?.role_id === 1 && (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "2fr 1fr 1fr",
+                      gap: "16px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div className="search-box">
+                      <svg
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        style={{
+                          position: "absolute",
+                          left: "12px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          color: "var(--gray-400)",
+                        }}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        ></path>
+                      </svg>
+                      <input
+                        type="text"
+                        placeholder="Search by Patient name, email, phone, or ID..."
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px 10px 40px",
+                          border: "1px solid var(--gray-300)",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                        }}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <select
                       style={{
-                        position: "absolute",
-                        left: "12px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "var(--gray-400)",
-                      }}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      ></path>
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Search by Patient name, email, phone, or ID..."
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px 10px 40px",
+                        padding: "10px 12px",
                         border: "1px solid var(--gray-300)",
                         borderRadius: "8px",
                         fontSize: "14px",
+                        background: "var(--card-bg)",
+                        color: "var(--text-primary)",
                       }}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <select
-                    style={{
-                      padding: "10px 12px",
-                      border: "1px solid var(--gray-300)",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      background: "var(--card-bg)",
-                      color: "var(--text-primary)",
-                    }}
-                    value={statusFilter || "All"}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="All">Select Status</option>
-                    {statuses.map((status) => (
-                      <option key={status.id} value={status.id}>
-                        {status.status_name}
-                      </option>
-                    ))}
-                  </select>
-                  {/* <select
+                      value={statusFilter === "__multi__" ? "All" : (statusFilter || "All")}
+                      onChange={(e) => {
+                        // When user manually picks a status, clear sidebar nav selection
+                        setSelectedNavOption(null);
+                        setStatusIds([]);
+                        setStatusFilter(e.target.value);
+                      }}
+                    >
+                      <option value="All">Select Status</option>
+                      {statuses.map((status) => (
+                        <option key={status.id} value={status.id}>
+                          {status.status_name}
+                        </option>
+                      ))}
+                    </select>
+                    {/* <select
                     style={{
                       padding: "10px 12px",
                       border: "1px solid var(--gray-300)",
@@ -656,26 +747,26 @@ export default function LeadsPage() {
                       </option>
                     ))}
                   </select> */}
-                  <select
-                    style={{
-                      padding: "10px 12px",
-                      border: "1px solid var(--gray-300)",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      background: "var(--card-bg)",
-                      color: "var(--text-primary)",
-                    }}
-                    value={teamFilter || "All"}
-                    onChange={(e) => setTeamFilter(e.target.value)}
-                  >
-                    <option value="All">All Teams</option>
-                    {teams.map((team) => (
-                      <option key={team.id} value={team.id}>
-                        {team.team_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    <select
+                      style={{
+                        padding: "10px 12px",
+                        border: "1px solid var(--gray-300)",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        background: "var(--card-bg)",
+                        color: "var(--text-primary)",
+                      }}
+                      value={teamFilter || "All"}
+                      onChange={(e) => setTeamFilter(e.target.value)}
+                    >
+                      <option value="All">All Teams</option>
+                      {teams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.team_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>)}
                 {/* Second Row: Date Filters */}
                 <div
                   style={{
@@ -740,10 +831,10 @@ export default function LeadsPage() {
                         padding: "9px 12px",
                         border: "1px solid var(--gray-300)",
                         borderRadius: "6px",
-                        fontSize: "14px",                      background: "var(--card-bg)",
-                      color: "var(--text-primary)",
-                      height: "40px",
-                    }}
+                        fontSize: "14px", background: "var(--card-bg)",
+                        color: "var(--text-primary)",
+                        height: "40px",
+                      }}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -787,14 +878,14 @@ export default function LeadsPage() {
                         borderRadius: "6px",
                         fontSize: "13px",
                         fontWeight: "500",
-                      background: "var(--card-bg)",
-                      color: "var(--gray-600)",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap",
-                      height: "40px",
-                    }}
-                  >
-                    Clear Dates
+                        background: "var(--card-bg)",
+                        color: "var(--gray-600)",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        height: "40px",
+                      }}
+                    >
+                      Clear Dates
                     </button>
                   )}
                 </div>
@@ -1097,12 +1188,12 @@ export default function LeadsPage() {
                           border: "1px solid var(--gray-300)",
                           borderRadius: "6px",
                           fontSize: "14px",
-                        background: "var(--card-bg)",
-                        color: "var(--text-primary)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <option value={25}>25</option>
+                          background: "var(--card-bg)",
+                          color: "var(--text-primary)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <option value={25}>25</option>
                         <option value={50}>50</option>
                         <option value={100}>100</option>
                         <option value={250}>250</option>

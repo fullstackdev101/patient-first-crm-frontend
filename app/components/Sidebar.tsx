@@ -1,14 +1,88 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useLeadsStore } from '@/store';
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const { setSelectedNavOption, selectedNavOption } = useLeadsStore();
     const [userRoleId, setUserRoleId] = useState<number | null>(null);
     const [isReportsOpen, setIsReportsOpen] = useState(false);
-    const [isLeadsOpen, setIsLeadsOpen] = useState(false);
+    const [isLeadsOpen, setIsLeadsOpen] = useState(true);
+
+    const ROLES = {
+        ADMIN: 1,
+        AGENT: 3,
+        LICENSE_AGENT: 4,
+        QA_REVIEWER: 5,
+        QA_MANAGER: 6,
+        VALIDATOR: 7,
+    };
+
+    const LEADS_NAV_CONFIG = [
+        {
+            label: "All Leads",
+            href: "/leads",
+            roles: [ROLES.ADMIN, ROLES.QA_MANAGER],
+            // "__all__" = explicitly show all leads (clear any previous filter)
+            filterKey: "__all__" as string | string[] | null,
+        },
+        // {
+        //     label: "Agent Leads",
+        //     href: "/leads/agent-leads",
+        //     roles: [ROLES.AGENT, ROLES.ADMIN, ROLES.QA_MANAGER],
+        //     filterKey: null,
+        // },
+        {
+            label: "QA Pending Approvals",
+            href: "/leads",
+            roles: [ROLES.QA_REVIEWER, ROLES.ADMIN, ROLES.QA_MANAGER],
+            // Backend already enforces QA Review + New for role 5; for Admin/QA_Manager
+            // clicking this should explicitly filter to those two statuses
+            filterKey: ["New"] as string | string[] | null,
+        },
+        {
+            label: "Pending Validations",
+            href: "/leads",
+            roles: [ROLES.VALIDATOR, ROLES.ADMIN, ROLES.QA_MANAGER],
+            filterKey: "Pending Validation" as string | string[] | null,
+        },
+        {
+            label: "Pending License Agent",
+            href: "/leads",
+            roles: [ROLES.LICENSE_AGENT, ROLES.ADMIN, ROLES.QA_MANAGER],
+            filterKey: "License Agent" as string | string[] | null,
+        },
+        {
+            label: "Approved Level",
+            href: "/leads",
+            roles: [ROLES.LICENSE_AGENT, ROLES.ADMIN, ROLES.QA_MANAGER],
+            filterKey: "Approved Level" as string | string[] | null,
+        },
+        {
+            label: "Approved GI",
+            href: "/leads",
+            roles: [ROLES.LICENSE_AGENT, ROLES.ADMIN, ROLES.QA_MANAGER],
+            filterKey: "Approved GI" as string | string[] | null,
+        },
+        {
+            label: "Rejected",
+            href: "/leads",
+            roles: [ROLES.QA_REVIEWER, ROLES.VALIDATOR, ROLES.ADMIN, ROLES.QA_MANAGER],
+            filterKey: "Rejected" as string | string[] | null,
+        },
+        {
+            label: "DNC",
+            href: "/leads",
+            roles: [ROLES.QA_REVIEWER, ROLES.VALIDATOR, ROLES.ADMIN, ROLES.QA_MANAGER],
+            filterKey: "DNC" as string | string[] | null,
+        }
+    ];
+
+
 
     useEffect(() => {
         // Get user role_id from localStorage (Zustand persist stores in 'auth-storage')
@@ -47,6 +121,14 @@ export default function Sidebar() {
         return pathname.startsWith(path);
     };
 
+    const getDashboardLabel = (module: string) => {
+        if (userRoleId === 3) {
+            return 'CLOSER';
+        } else {
+            return 'Dashboard';
+        }
+    }
+
     // Define which modules each role can access
     const canAccessModule = (module: string) => {
         console.log(`🔍 Sidebar - Checking access for module: ${module}, userRoleId: ${userRoleId}`);
@@ -56,8 +138,15 @@ export default function Sidebar() {
             return true; // Show all if role not loaded yet
         }
 
-        // Agent (3), License Agent (4), and QA Review (5) can access Dashboard and Leads only
-        if (userRoleId === 2 || userRoleId === 3 || userRoleId === 4 || userRoleId === 5) {
+        // Agent (3) can access Dashboard only
+        if (userRoleId === 3) {
+            const hasAccess = module === 'dashboard';
+            console.log(`🔍 Sidebar - Role ID ${userRoleId}, module ${module}: ${hasAccess ? 'ALLOWED' : 'DENIED'}`);
+            return hasAccess;
+        }
+
+        // License Agent (4), and QA Review (5) can access Dashboard and Leads only
+        if (userRoleId === 2 || userRoleId === 4 || userRoleId === 5) {
             const hasAccess = module === 'dashboard' || module === 'leads';
             console.log(`🔍 Sidebar - Role ID ${userRoleId}, module ${module}: ${hasAccess ? 'ALLOWED' : 'DENIED'}`);
             return hasAccess;
@@ -103,7 +192,7 @@ export default function Sidebar() {
                                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
                             </path>
                         </svg>
-                        <span>Dashboard</span>
+                        <span>{getDashboardLabel('dashboard')}</span>
                     </Link>
                 )}
 
@@ -131,54 +220,23 @@ export default function Sidebar() {
 
                         {isLeadsOpen && (
                             <div className="submenu">
-                                {/* All Leads - Super Admin only (role_id: 1) */}
-                                {(userRoleId === 1 || userRoleId === 6) && (
-                                    <Link
-                                        href="/leads"
-                                        className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
-                                    >
-                                        <span>All Leads</span>
-                                    </Link>
-                                )}
-
-                                {/* Agent Leads - Agent only (role_id: 3) */}
-                                {userRoleId === 3 && (
-                                    <Link
-                                        href="/leads/agent-leads"
-                                        className={`submenu-item ${pathname === '/leads/agent-leads' ? 'active' : ''}`}
-                                    >
-                                        <span>Agent Leads</span>
-                                    </Link>
-                                )}
-
-                                {/* QA Leads - QA Reviewer (5) and QA Manager (6) */}
-                                {(userRoleId === 5) && (
-                                    <Link
-                                        href="/leads"
-                                        className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
-                                    >
-                                        <span>QA Approvals</span>
-                                    </Link>
-                                )}
-
-                                {/* Validator Leads - Validator (7) */}
-                                {(userRoleId === 7) && (
-                                    <Link
-                                        href="/leads"
-                                        className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
-                                    >
-                                        <span>Validator Approvals</span>
-                                    </Link>
-                                )}
-
-                                {/* LA Leads - License Agent only (role_id: 4) */}
-                                {userRoleId === 4 && (
-                                    <Link
-                                        href="/leads"
-                                        className={`submenu-item ${pathname === '/leads' ? 'active' : ''}`}
-                                    >
-                                        <span>LA Leads</span>
-                                    </Link>
+                                {LEADS_NAV_CONFIG.filter((item) => userRoleId !== null && item.roles.includes(userRoleId)).map(
+                                    (item, index) => {
+                                        const isActive = selectedNavOption !== null &&
+                                            JSON.stringify(selectedNavOption) === JSON.stringify(item.filterKey);
+                                        return (
+                                            <button
+                                                key={`${item.label}-${index}`}
+                                                className={`submenu-item${isActive ? ' active' : ''}`}
+                                                onClick={() => {
+                                                    setSelectedNavOption(item.filterKey);
+                                                    router.push(item.href);
+                                                }}
+                                            >
+                                                <span>{item.label}</span>
+                                            </button>
+                                        );
+                                    }
                                 )}
                             </div>
                         )}

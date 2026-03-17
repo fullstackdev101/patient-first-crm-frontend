@@ -103,7 +103,7 @@ export default function AddLeadPage() {
         doctor_phone: formData.doctor_phone ? unmask(formData.doctor_phone) : "",
         account_number: unmask(formData.account_number),
         routing_number: unmask(formData.routing_number),
-        status: 1,
+        status: 1,    // Statuses: 1 for New, 3 for QA Review
         hospitalized_nursing_oxygen_cancer_assistance:
           hospitalized_nursing_oxygen_cancer_assistance === "yes",
         organ_transplant_terminal_condition:
@@ -128,8 +128,9 @@ export default function AddLeadPage() {
       alert("Lead created successfully!");
 
       const userRoleId = user?.role_id;
-      if (userRoleId === 3 || userRoleId === 4) {
-        router.push("/leads/agent-leads");
+      if (userRoleId === 3) {
+        // router.push("/leads/agent-leads");
+        router.push("/dashboard");
       } else {
         router.push("/leads");
       }
@@ -173,22 +174,34 @@ export default function AddLeadPage() {
                     <h3 className="card-title">Personal Information</h3>
                   </div>
                   <div className="card-content">
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
-                      <div className="form-group">
-                        <label className="form-label">First Name *</label>
-                        <input type="text" className="form-input" required value={formData.first_name}
-                          onChange={(e) => change("first_name", e.target.value)} />
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, 1fr)",
+                        gap: "16px",
+                      }}
+                    >
+
+                      {/* Full Name Row - Spanning 2 columns to fit 3 fields in one line */}
+                      <div style={{ gridColumn: "span 2", display: "grid", gridTemplateColumns: "2fr 1fr 2fr", gap: "12px" }}>
+                        <div className="form-group">
+                          <label className="form-label">First Name *</label>
+                          <input type="text" className="form-input" required value={formData.first_name}
+                            onChange={(e) => change("first_name", e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Middle Initial</label>
+                          <input type="text" className="form-input" maxLength={1} value={formData.middle_initial}
+                            onChange={(e) => change("middle_initial", e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Last Name *</label>
+                          <input type="text" className="form-input" required value={formData.last_name}
+                            onChange={(e) => change("last_name", e.target.value)} />
+                        </div>
                       </div>
-                      <div className="form-group">
-                        <label className="form-label">Last Name *</label>
-                        <input type="text" className="form-input" required value={formData.last_name}
-                          onChange={(e) => change("last_name", e.target.value)} />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">Middle Initial</label>
-                        <input type="text" className="form-input" maxLength={1} value={formData.middle_initial}
-                          onChange={(e) => change("middle_initial", e.target.value)} />
-                      </div>
+
+                      {/* DOB and Contact */}
                       <div className="form-group">
                         <label className="form-label">
                           Date of Birth <span className="required-indicator">*</span>
@@ -202,6 +215,7 @@ export default function AddLeadPage() {
                           onYearChange={(v) => change("dob_year", v)}
                         />
                       </div>
+
                       <div className={`form-group ${errors.phone ? "error" : ""}`}>
                         <label className="form-label">
                           Phone <span className="required-indicator">*</span>
@@ -210,21 +224,52 @@ export default function AddLeadPage() {
                           value={formData.phone}
                           onChange={(e) => change("phone", maskPhone(e.target.value))} />
                       </div>
+
+                      {/* Address Section */}
+                      <div className="form-group">
+                        <label className="form-label">Street Address</label>
+                        <input type="text" className="form-input" value={formData.address}
+                          onChange={(e) => change("address", e.target.value)} />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Apartment / Lot Number *</label>
+                        <input type="text" className="form-input" required value={formData.apt_lot}
+                          onChange={(e) => change("apt_lot", e.target.value)} />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">City</label>
+                        <input type="text" className="form-input" value={formData.city}
+                          onChange={(e) => change("city", e.target.value)} />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">State</label>
+                        <select
+                          className="form-input"
+                          value={formData.state}
+                          onChange={(e) => change("state", e.target.value)}
+                        >
+                          <option value="">Select State</option>
+                          {["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"].map(st => (
+                            <option key={st} value={st}>{st}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Zipcode *</label>
+                        <input type="text" className="form-input" required value={formData.zipcode}
+                          onChange={(e) => change("zipcode", e.target.value)} />
+                      </div>
                       <div className="form-group">
                         <label className="form-label">Email *</label>
                         <input type="email" className="form-input" placeholder="patient@email.com" required
                           value={formData.email} onChange={(e) => change("email", e.target.value)} />
                       </div>
-                      <div className="form-group" style={{ gridColumn: "span 2" }}>
-                        <label className="form-label">Address *</label>
-                        <input type="text" className="form-input" required value={formData.address}
-                          onChange={(e) => change("address", e.target.value)} />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">State of Birth *</label>
-                        <input type="text" className="form-input" required value={formData.state_of_birth}
-                          onChange={(e) => change("state_of_birth", e.target.value)} />
-                      </div>
+
+                      {/* SSN */}
                       <div className={`form-group ${errors.ssn ? "error" : ""}`}>
                         <label className="form-label">
                           Social Security Number <span className="required-indicator">*</span>
@@ -233,6 +278,15 @@ export default function AddLeadPage() {
                           value={formData.ssn}
                           onChange={(e) => change("ssn", maskSSN(e.target.value))} />
                       </div>
+
+
+
+                      <div className="form-group">
+                        <label className="form-label">State of Birth *</label>
+                        <input type="text" className="form-input" required value={formData.state_of_birth}
+                          onChange={(e) => change("state_of_birth", e.target.value)} />
+                      </div>
+
                     </div>
                   </div>
                 </div>
@@ -254,10 +308,31 @@ export default function AddLeadPage() {
                         <input type="text" className="form-input" placeholder="e.g., 180 lbs" value={formData.weight}
                           onChange={(e) => change("weight", e.target.value)} />
                       </div>
-                      <div className="form-group">
+                      {/* <div className="form-group">
                         <label className="form-label">Insurance Provider</label>
                         <input type="text" className="form-input" value={formData.insurance_provider}
                           onChange={(e) => change("insurance_provider", e.target.value)} />
+                      </div> */}
+                      {/* Carriers Dropdown */}
+                      <div className="form-group">
+                        <label className="form-label">Carriers</label>
+                        <select
+                          className="form-input"
+                          required
+                          value={formData.insurance_provider}
+                          onChange={(e) => change("insurance_provider", e.target.value)}
+                        >
+                          <option value="">Select Carrier</option>
+                          <option value="TransAmerica">TransAmerica</option>
+                          <option value="AMAM">AMAM</option>
+                          <option value="RNA">RNA</option>
+                          <option value="Americo">Americo</option>
+                          <option value="Aetna">Aetna</option>
+                          <option value="MOO">MOO</option>
+                          <option value="Corbridge">Corbridge</option>
+                          <option value="CICA">CICA</option>
+                          <option value="Others">Others</option>
+                        </select>
                       </div>
                       <div className="form-group">
                         <label className="form-label">Policy Number</label>
