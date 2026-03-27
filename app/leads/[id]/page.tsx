@@ -20,6 +20,7 @@ import {
   DOBSelects,
   HealthQuestionnaire,
   HEALTH_FIELD_NAMES,
+  validateSensitiveSecrets,
   type FormData,
 } from "../lead-form-helpers";
 
@@ -85,7 +86,7 @@ function buildFormDataFromLead(
       ? maskRoutingNumber(currentLead.routing_number)
       : "",
     account_type:
-      (currentLead.account_type as "checking" | "saving" | "direct_express") ||
+      (currentLead.account_type as "checking" | "saving") ||
       "checking",
     banking_comments: currentLead.banking_comments || "",
     initial_draft: currentLead.initial_draft || "",
@@ -224,6 +225,13 @@ export default function EditLeadPage() {
       return;
     }
 
+    // Sensitive Data Validation (Credit Card, CVV, Expiry)
+    const sensitiveCheck = validateSensitiveSecrets(formData);
+    if (sensitiveCheck) {
+      alert(sensitiveCheck);
+      return;
+    }
+
     setIsSaving(true);
     try {
       const userStr = localStorage.getItem("user");
@@ -306,6 +314,13 @@ export default function EditLeadPage() {
   const handleAddComment = async () => {
     if (!newComment.trim()) {
       alert("Please enter a comment");
+      return;
+    }
+
+    // Sensitive Data Validation
+    const sensitiveCheck = validateSensitiveSecrets(newComment);
+    if (sensitiveCheck) {
+      alert(sensitiveCheck);
       return;
     }
     setIsSubmittingComment(true);
@@ -1134,10 +1149,6 @@ export default function EditLeadPage() {
                             {[
                               { value: "checking", label: "Checking" },
                               { value: "saving", label: "Saving" },
-                              {
-                                value: "direct_express",
-                                label: "Direct Express Card",
-                              },
                             ].map((opt) => (
                               <label
                                 key={opt.value}

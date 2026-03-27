@@ -19,6 +19,7 @@ import {
   INITIAL_FORM_DATA,
   DOBSelects,
   HealthQuestionnaire,
+  validateSensitiveSecrets,
   type FormData,
 } from "../lead-form-helpers";
 
@@ -64,6 +65,13 @@ export default function AddLeadPage() {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       alert("Please fill in all required fields");
+      return;
+    }
+
+    // Sensitive Data Validation (Credit Card, CVV, Expiry)
+    const sensitiveCheck = validateSensitiveSecrets(formData);
+    if (sensitiveCheck) {
+      alert(sensitiveCheck);
       return;
     }
 
@@ -496,7 +504,6 @@ export default function AddLeadPage() {
                           {[
                             { value: "checking", label: "Checking" },
                             { value: "saving", label: "Saving" },
-                            { value: "direct_express", label: "Direct Express Card" },
                           ].map((opt) => (
                             <label key={opt.value} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
                               <input type="radio" name="account_type" value={opt.value} required

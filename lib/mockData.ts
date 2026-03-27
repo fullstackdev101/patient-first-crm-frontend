@@ -57,7 +57,7 @@ export interface Lead {
     account_name?: string;
     account_number?: string;
     routing_number?: string;
-    account_type?: 'checking' | 'saving' | 'direct_express';
+    account_type?: 'checking' | 'saving';
     banking_comments?: string;
 }
 

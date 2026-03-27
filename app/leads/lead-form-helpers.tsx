@@ -36,7 +36,7 @@ export type FormData = {
     account_name: string;
     account_number: string;
     routing_number: string;
-    account_type: "checking" | "saving" | "direct_express";
+    account_type: "checking" | "saving";
     banking_comments: string;
     initial_draft: string;
     future_draft: string;
@@ -126,6 +126,67 @@ export function parseDOB(dateStr: string) {
     if (!dateStr) return { dob_year: "", dob_month: "", dob_day: "" };
     const [y, m, d] = dateStr.split("-");
     return { dob_year: y || "", dob_month: m || "", dob_day: d || "" };
+}
+
+/**
+ * Fields that are intentionally numeric (bank account, routing, SSN) and are
+ * handled separately via input masking + backend encryption. They must NOT be
+ * flagged as credit-card data even though they contain long digit sequences.
+ */
+const SKIP_CARD_CHECK_FIELDS = new Set([
+    "account_number",
+    "routing_number",
+    "ssn",
+]);
+
+/** 
+ * Checks a string for patterns that look like sensitive credit card information.
+ * Returns a message describing the finding, or null if clean.
+ */
+export function validateSensitiveSecrets(data: any, fieldKey?: string): string | null {
+    if (!data) return null;
+    
+    // If it's an object (like FormData), check all string values
+    if (typeof data === 'object') {
+        for (const key in data) {
+            const finding = validateSensitiveSecrets(data[key], key);
+            if (finding) return finding;
+        }
+        return null;
+    }
+
+    if (typeof data !== 'string') return null;
+
+    // 1. Card Number: 13-19 digits, possibly with spaces or dashes
+    // Skip known legitimate numeric fields (bank account, routing, SSN) — these
+    // are intentionally digit-heavy and are encrypted on the backend.
+    if (!fieldKey || !SKIP_CARD_CHECK_FIELDS.has(fieldKey)) {
+        const cardPattern = /\b(?:\d[ -]*?){13,19}\b/;
+        if (cardPattern.test(data)) {
+            const digitsOnly = data.replace(/\D/g, "");
+            if (digitsOnly.length >= 13 && digitsOnly.length <= 19) {
+                return "Potential Credit Card Number detected. For security reasons, do not enter full card numbers.";
+            }
+        }
+    }
+
+    // 2. CVV: 3 or 4 digits near keywords
+    const cvvPattern = /\b(?:cvv|cvc|security\s*code|sec\s*code|verification\s*value)\b.*?\b\d{3,4}\b/i;
+    if (cvvPattern.test(data)) {
+        return "Potential CVV/CVC security code detected. This information must not be stored.";
+    }
+
+    // 3. Expiry Date: MM/YY or MM/YYYY
+    const expiryPattern = /\b(0[1-9]|1[0-2])[\/\-](?:\d{2}|\d{4})\b/;
+    if (expiryPattern.test(data)) {
+        // Check if it's near payment keywords to be more precise, but user asked for general prevention
+        const paymentKeywords = /exp|expiry|valid\s*thru|date/i;
+        if (paymentKeywords.test(data)) {
+            return "Potential Credit Card Expiry Date detected. This information is sensitive.";
+        }
+    }
+
+    return null;
 }
 
 /** Health questionnaire field names */

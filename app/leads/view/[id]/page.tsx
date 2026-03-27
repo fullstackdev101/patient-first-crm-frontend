@@ -9,6 +9,7 @@ import ProtectedRoute from '../../../components/ProtectedRoute';
 import { useLeadsStore, useAuthStore } from "@/store";
 import { maskSSN, maskPhone, maskAccountNumber, maskRoutingNumber } from '@/lib/inputMask';
 import axios from '@/lib/axios';
+import { validateSensitiveSecrets } from '../../lead-form-helpers';
 
 export default function ViewLeadPage() {
     const params = useParams();
@@ -114,6 +115,13 @@ export default function ViewLeadPage() {
     const handleAddComment = async () => {
         if (!newComment.trim()) {
             alert('Please enter a comment');
+            return;
+        }
+
+        // Sensitive Data Validation
+        const sensitiveCheck = validateSensitiveSecrets(newComment);
+        if (sensitiveCheck) {
+            alert(sensitiveCheck);
             return;
         }
 
