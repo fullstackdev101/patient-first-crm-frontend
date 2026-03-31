@@ -58,6 +58,8 @@ interface Lead {
     neurological_conditions_3years?: boolean;
     health_comments?: string;
     covid_question?: boolean;
+    nicotine_user?: string;
+    existing_policy?: boolean;
     assigned_to_role?: string;
 }
 

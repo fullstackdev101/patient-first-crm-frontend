@@ -91,6 +91,8 @@ export default function AddLeadPage() {
         cancer_respiratory_liver_3years,
         neurological_conditions_3years,
         health_comments,
+        nicotine_user,
+        existing_policy,
         covid_question,
         dob_month,
         dob_day,
@@ -129,6 +131,8 @@ export default function AddLeadPage() {
         cancer_respiratory_liver_3years: cancer_respiratory_liver_3years === "yes",
         neurological_conditions_3years: neurological_conditions_3years === "yes",
         health_comments,
+        nicotine_user,
+        existing_policy: existing_policy === "yes",
         covid_question: covid_question === "yes",
       };
 
@@ -437,6 +441,45 @@ export default function AddLeadPage() {
                   </div>
                   <div className="card-content">
                     <HealthQuestionnaire formData={formData} onChange={change} />
+                  </div>
+                </div>
+
+                {/* Additional Health Questions row (Nicotine/Existing Policy) */}
+                <div className="card" style={{ marginBottom: "24px" }}>
+                  <div className="card-header">
+                    <h3 className="card-title">Additional Health Information</h3>
+                  </div>
+                  <div className="card-content">
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px" }}>
+                      <div className="form-group">
+                        <label className="form-label">Nicotine User</label>
+                        <div style={{ display: "flex", gap: "24px", marginTop: "8px" }}>
+                          {["smoker", "non-smoker"].map((opt) => (
+                            <label key={opt} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                              <input type="radio" name="nicotine_user" value={opt}
+                                style={{ width: "18px", height: "18px" }}
+                                checked={formData.nicotine_user === opt}
+                                onChange={(e) => change("nicotine_user", e.target.value)} />
+                              <span>{opt === "smoker" ? "Smoker" : "Non-Smoker"}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Does Insured person already have a existing policy?</label>
+                        <div style={{ display: "flex", gap: "24px", marginTop: "8px" }}>
+                          {["yes", "no"].map((opt) => (
+                            <label key={opt} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                              <input type="radio" name="existing_policy" value={opt}
+                                style={{ width: "18px", height: "18px" }}
+                                checked={formData.existing_policy === opt}
+                                onChange={(e) => change("existing_policy", e.target.value)} />
+                              <span>{opt === "yes" ? "Yes" : "No"}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

@@ -221,7 +221,12 @@ export default function ViewLeadPage() {
                                             <ReadOnlyField label="First Name" value={currentLead.first_name} />
                                             < ReadOnlyField label="Middle Initial" value={currentLead.middle_initial} />
                                             < ReadOnlyField label="Last Name" value={currentLead.last_name} />
-                                            < ReadOnlyField label="Date of Birth" value={currentLead.date_of_birth} />
+                                            <ReadOnlyField label="Date of Birth" value={(() => {
+                                                if (!currentLead.date_of_birth) return "";
+                                                const [year, month, day] = currentLead.date_of_birth.split("-");
+                                                if (!year || !month || !day) return currentLead.date_of_birth;
+                                                return `${month}/${day}/${year}`;
+                                            })()} />
                                             < ReadOnlyField label="Phone" value={currentLead.phone ? maskPhone(currentLead.phone) : ''} />
                                             < ReadOnlyField label="Email" value={currentLead.email} />
                                             < ReadOnlyField label="State of Birth" value={currentLead.state_of_birth} />
@@ -383,6 +388,39 @@ export default function ViewLeadPage() {
                                             <QuestionField
                                                 question="8c. Within the past 3 years have you been medically diagnosed or treated, or hospitalized for paralysis of two or more extremities or cerebral palsy, multiple sclerosis, seizures, Parkinson's disease or muscular dystrophy?"
                                                 answer={currentLead.neurological_conditions_3years}
+                                            />
+                                            <div style={{ padding: '16px', background: 'var(--gray-50)', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
+                                                <p style={{ fontSize: '14px', color: 'var(--gray-700)', marginBottom: '12px', lineHeight: '1.6' }}>
+                                                    9. Nicotine User ?
+                                                </p>
+                                                <div style={{ display: 'flex', gap: '16px' }}>
+                                                    <div style={{
+                                                        padding: '8px 16px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '14px',
+                                                        fontWeight: '600',
+                                                        background: currentLead.nicotine_user === 'smoker' ? '#fee2e2' : 'var(--card-bg)',
+                                                        color: currentLead.nicotine_user === 'smoker' ? '#991b1b' : 'var(--gray-500)',
+                                                        border: `2px solid ${currentLead.nicotine_user === 'smoker' ? '#ef4444' : 'var(--gray-300)'}`
+                                                    }}>
+                                                        Smoker {currentLead.nicotine_user === 'smoker' && '✓'}
+                                                    </div>
+                                                    <div style={{
+                                                        padding: '8px 16px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '14px',
+                                                        fontWeight: '600',
+                                                        background: currentLead.nicotine_user === 'non-smoker' ? '#dcfce7' : 'var(--card-bg)',
+                                                        color: currentLead.nicotine_user === 'non-smoker' ? '#166534' : 'var(--gray-500)',
+                                                        border: `2px solid ${currentLead.nicotine_user === 'non-smoker' ? '#22c55e' : 'var(--gray-300)'}`
+                                                    }}>
+                                                        Non-Smoker {currentLead.nicotine_user === 'non-smoker' && '✓'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <QuestionField
+                                                question="Does Insured person already have a existing policy?"
+                                                answer={currentLead.existing_policy}
                                             />
                                             <div style={{ padding: '12px', background: 'var(--secondary-50)', border: '1px solid var(--secondary-500)', borderRadius: '8px' }}>
                                                 <p style={{ fontSize: '13px', color: 'var(--secondary-600)', fontWeight: '600', margin: 0 }}>If any answer to question 8 is answered "Yes" the Proposed Insured should apply for the Graded Death Benefit Plan.</p>

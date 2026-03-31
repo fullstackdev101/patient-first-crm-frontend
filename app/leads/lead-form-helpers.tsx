@@ -54,6 +54,8 @@ export type FormData = {
     cancer_respiratory_liver_3years: string;
     neurological_conditions_3years: string;
     health_comments: string;
+    nicotine_user: "" | "smoker" | "non-smoker";
+    existing_policy: "yes" | "no";
     covid_question: string;
     [key: string]: any;
 };
@@ -107,6 +109,8 @@ export const INITIAL_FORM_DATA: FormData = {
     cancer_respiratory_liver_3years: "no",
     neurological_conditions_3years: "no",
     health_comments: "",
+    nicotine_user: "",
+    existing_policy: "no",
     covid_question: "no",
 };
 
@@ -205,6 +209,7 @@ export const HEALTH_FIELD_NAMES = [
     "cancer_respiratory_liver_3years",
     "neurological_conditions_3years",
     "covid_question",
+    "existing_policy",
 ] as const;
 
 // ─── Shared Components ────────────────────────────────────────────────────────

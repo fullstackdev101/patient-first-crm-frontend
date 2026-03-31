@@ -92,6 +92,7 @@ function buildFormDataFromLead(
     initial_draft: currentLead.initial_draft || "",
     future_draft: currentLead.future_draft || "",
     health_comments: currentLead.health_comments || "",
+    nicotine_user: currentLead.nicotine_user || "",
     ...healthFields,
     status: currentLead.status || 1,
     assigned_to: currentLead.assigned_to
@@ -240,13 +241,35 @@ export default function EditLeadPage() {
         ? localUser.id || localUser.user_id || localUser.userId || null
         : null;
 
+      const {
+        dob_month,
+        dob_day,
+        dob_year,
+        hospitalized_nursing_oxygen_cancer_assistance,
+        organ_transplant_terminal_condition,
+        aids_hiv_immune_deficiency,
+        diabetes_complications_insulin,
+        kidney_disease_multiple_cancers,
+        pending_tests_surgery_hospitalization,
+        angina_stroke_lupus_copd_hepatitis,
+        heart_attack_aneurysm_surgery,
+        cancer_treatment_2years,
+        substance_abuse_treatment,
+        cardiovascular_events_3years,
+        cancer_respiratory_liver_3years,
+        neurological_conditions_3years,
+        covid_question,
+        existing_policy,
+        ...otherFormData
+      } = formData;
+
       const date_of_birth =
-        formData.dob_year && formData.dob_month && formData.dob_day
-          ? `${formData.dob_year}-${formData.dob_month}-${formData.dob_day}`
+        dob_year && dob_month && dob_day
+          ? `${dob_year}-${dob_month.padStart(2, "0")}-${dob_day.padStart(2, "0")}`
           : "";
 
       const leadData = {
-        ...formData,
+        ...otherFormData,
         date_of_birth,
         ssn: unmask(formData.ssn),
         phone: unmask(formData.phone),
@@ -258,6 +281,21 @@ export default function EditLeadPage() {
         status: formData.status,
         lead_manual_status: formData.lead_manual_status || null,
         user_id: userId,
+        hospitalized_nursing_oxygen_cancer_assistance: hospitalized_nursing_oxygen_cancer_assistance === "yes",
+        organ_transplant_terminal_condition: organ_transplant_terminal_condition === "yes",
+        aids_hiv_immune_deficiency: aids_hiv_immune_deficiency === "yes",
+        diabetes_complications_insulin: diabetes_complications_insulin === "yes",
+        kidney_disease_multiple_cancers: kidney_disease_multiple_cancers === "yes",
+        pending_tests_surgery_hospitalization: pending_tests_surgery_hospitalization === "yes",
+        angina_stroke_lupus_copd_hepatitis: angina_stroke_lupus_copd_hepatitis === "yes",
+        heart_attack_aneurysm_surgery: heart_attack_aneurysm_surgery === "yes",
+        cancer_treatment_2years: cancer_treatment_2years === "yes",
+        substance_abuse_treatment: substance_abuse_treatment === "yes",
+        cardiovascular_events_3years: cardiovascular_events_3years === "yes",
+        cancer_respiratory_liver_3years: cancer_respiratory_liver_3years === "yes",
+        neurological_conditions_3years: neurological_conditions_3years === "yes",
+        covid_question: covid_question === "yes",
+        existing_policy: existing_policy === "yes",
       };
 
       const response = await axios.put(`/leads/${leadId}`, leadData);
@@ -999,6 +1037,45 @@ export default function EditLeadPage() {
                         formData={formData}
                         onChange={change}
                       />
+                    </div>
+                  </div>
+
+                  {/* Additional Health Questions row (Nicotine/Existing Policy) */}
+                  <div className="card" style={{ marginBottom: "24px" }}>
+                    <div className="card-header">
+                      <h3 className="card-title">Additional Health Information</h3>
+                    </div>
+                    <div className="card-content">
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px" }}>
+                        <div className="form-group">
+                          <label className="form-label">Nicotine User</label>
+                          <div style={{ display: "flex", gap: "24px", marginTop: "8px" }}>
+                            {["smoker", "non-smoker"].map((opt) => (
+                              <label key={opt} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                                <input type="radio" name="nicotine_user" value={opt}
+                                  style={{ width: "18px", height: "18px" }}
+                                  checked={formData.nicotine_user === opt}
+                                  onChange={(e) => change("nicotine_user", e.target.value)} />
+                                <span>{opt === "smoker" ? "Smoker" : "Non-Smoker"}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Does Insured person already have a existing policy?</label>
+                          <div style={{ display: "flex", gap: "24px", marginTop: "8px" }}>
+                            {["yes", "no"].map((opt) => (
+                              <label key={opt} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                                <input type="radio" name="existing_policy" value={opt}
+                                  style={{ width: "18px", height: "18px" }}
+                                  checked={formData.existing_policy === opt}
+                                  onChange={(e) => change("existing_policy", e.target.value)} />
+                                <span>{opt === "yes" ? "Yes" : "No"}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
