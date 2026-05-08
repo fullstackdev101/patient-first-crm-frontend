@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Sidebar from "../components/Sidebar";
@@ -33,9 +33,9 @@ export default function LeadsPage() {
 
   // State for statuses from database
   const [statuses, setStatuses] = useState<any[]>([]);
-  const [licenseAgentStatusId, setLicenseAgentStatusId] = useState<
-    string | null
-  >(null);
+  const [statusesLoaded, setStatusesLoaded] = useState(false);
+  const [filtersReady, setFiltersReady] = useState(false);
+  const lastLeadsQueryKeyRef = useRef<string | null>(null);
 
   // // Role-based automatic status filtering
   // useEffect(() => {
@@ -130,6 +130,9 @@ export default function LeadsPage() {
 
   // Fetch statuses from API and apply role-based filtering
   useEffect(() => {
+    setStatusesLoaded(false);
+    setFiltersReady(false);
+
     const fetchStatuses = async () => {
       try {
         const response = await axios.get("/statuses");
@@ -137,29 +140,21 @@ export default function LeadsPage() {
           const allStatuses = response.data.data;
           const userRoleId = currentUser?.role_id;
 
-          // Find specific status IDs
-          const qaReviewStatus = allStatuses.find(
-            (s: any) => s.status_name === "QA Review",
-          );
-          const newStatus = allStatuses.find(
-            (s: any) => s.status_name === "New",
-          );
-          const licenseAgentStatus = allStatuses.find(
-            (s: any) => s.status_name === "License Agent",
-          );
+          setStatuses(allStatuses);
 
-          // Store License Agent status ID for LA role filtering
-          if (licenseAgentStatus) {
-            setLicenseAgentStatusId(licenseAgentStatus.id.toString());
-          }
+          // Default status filter on refresh/first load (only when sidebar has no intent).
+          // Requirements:
+          // - role_id 4 => status id 8 (License Agent)
+          // - role_id 7 => status id 10 (Pending Validation)
+          const latestSelectedNavOption = useLeadsStore.getState().selectedNavOption;
+          if (latestSelectedNavOption === null) {
+            const defaultStatusId =
+              userRoleId === 4 ? "8" : userRoleId === 7 ? "10" : null;
 
-          if (userRoleId === 5 || userRoleId === 4) {
-            setStatuses(allStatuses);
-            if (licenseAgentStatus && selectedNavOption === null) {
-              setStatusFilter(licenseAgentStatus.id.toString());
+            if (defaultStatusId) {
+              setStatusIds([]);
+              setStatusFilter((prev) => (prev === "All" ? defaultStatusId : prev));
             }
-          } else {
-            setStatuses(allStatuses);
           }
 
           // // Role-based status filtering
@@ -196,13 +191,47 @@ export default function LeadsPage() {
           //   // );
           //   setStatuses(allStatuses);
           // }
+        } else {
+          setStatuses([]);
         }
       } catch (error) {
         console.error("Error fetching statuses:", error);
+        setStatuses([]);
+      } finally {
+        setStatusesLoaded(true);
       }
     };
     fetchStatuses();
   }, [currentUser?.role_id]);
+
+  // Mark filters ready only after defaults are applied (prevents first unfiltered /leads call).
+  useEffect(() => {
+    if (!statusesLoaded) {
+      setFiltersReady(false);
+      lastLeadsQueryKeyRef.current = null;
+      return;
+    }
+
+    const userRoleId = currentUser?.role_id;
+    const latestSelectedNavOption = useLeadsStore.getState().selectedNavOption;
+    const roleDefaultStatusId =
+      userRoleId === 4 ? "8" : userRoleId === 7 ? "10" : null;
+
+    if (
+      roleDefaultStatusId &&
+      latestSelectedNavOption === null &&
+      statusFilter === "All"
+    ) {
+      // Apply required default first; we'll become "ready" on the next render.
+      setStatusIds([]);
+      setStatusFilter(roleDefaultStatusId);
+      setFiltersReady(false);
+      lastLeadsQueryKeyRef.current = null;
+      return;
+    }
+
+    setFiltersReady(true);
+  }, [statusesLoaded, currentUser?.role_id, statusFilter, setStatusIds]);
 
   // Fetch all users from API
   useEffect(() => {
@@ -227,6 +256,8 @@ export default function LeadsPage() {
   // Refetch when filters change
   useEffect(() => {
     const fetchWithFilters = async () => {
+      if (!filtersReady) return;
+
       useLeadsStore.setState({ isLoading: true, error: null });
 
       try {
@@ -283,6 +314,13 @@ export default function LeadsPage() {
           return;
         }
 
+        const queryKey = params.toString();
+        if (lastLeadsQueryKeyRef.current === queryKey) {
+          useLeadsStore.setState({ isLoading: false });
+          return;
+        }
+        lastLeadsQueryKeyRef.current = queryKey;
+
         const response = await axios.get(`/leads?${params}`);
 
         if (response.data.success) {
@@ -302,6 +340,7 @@ export default function LeadsPage() {
 
     fetchWithFilters();
   }, [
+    filtersReady,
     searchQuery,
     statusFilter,
     statusIds,
@@ -311,6 +350,8 @@ export default function LeadsPage() {
     endDate,
     currentPage,
     itemsPerPage,
+    selectedNavOption,
+    statuses.length,
   ]);
 
   // Calculate pagination
